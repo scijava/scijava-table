@@ -21,10 +21,6 @@
 
 package net.imagej.table;
 
-import io.scif.io.IRandomAccess;
-import io.scif.io.VirtualHandle;
-import io.scif.services.LocationService;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +33,11 @@ import java.util.stream.IntStream;
 
 import org.scijava.Priority;
 import org.scijava.io.AbstractIOPlugin;
+import org.scijava.io.DataHandle;
+import org.scijava.io.DataHandleService;
+import org.scijava.io.FileLocation;
 import org.scijava.io.IOPlugin;
+import org.scijava.io.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.FileUtils;
@@ -51,7 +51,7 @@ import org.scijava.util.FileUtils;
 public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 
 	@Parameter
-	private LocationService locationService;
+	private DataHandleService dataHandleService;
 
 	/** Reads the first row of the input file as column headers. */
 	@Parameter(required = false)
@@ -180,12 +180,16 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 
 	@Override
 	public GenericTable open(final String source) throws IOException {
-		final IRandomAccess handle = locationService.getHandle(source);
-		if (handle instanceof VirtualHandle) {
+		// FIXME Assumes FileLocation
+		final Location sourceLocation = new FileLocation(source);
+		final DataHandle<? extends Location> handle = //
+				dataHandleService.create(sourceLocation);
+		long length = handle.length();
+		if (length == 0) {
 			throw new IOException("Cannot open source");
 		}
-		handle.seek(0);
-		final byte[] buffer = new byte[(int) handle.length()];
+
+		final byte[] buffer = new byte[(int) length];
 		handle.read(buffer);
 		final String text = new String(buffer);
 
@@ -248,11 +252,10 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 	public void save(final GenericTable table, final String source)
 		throws IOException
 	{
-		final IRandomAccess handle = locationService.getHandle(source, true);
-		if (handle instanceof VirtualHandle) {
-			throw new IOException("Cannot open source");
-		}
-		handle.seek(0);
+		// FIXME Assumes FileLocation
+		final Location sourceLocation = new FileLocation(source);
+		final DataHandle<Location> handle = //
+				dataHandleService.create(sourceLocation);
 
 		final boolean writeRH = this.writeRowHeaders && table.getRowCount() > 0 &&
 			IntStream.range(0, table.getRowCount()).allMatch(row -> table
