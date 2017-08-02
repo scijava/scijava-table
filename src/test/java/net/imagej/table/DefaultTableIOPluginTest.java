@@ -24,19 +24,23 @@ package net.imagej.table;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import io.scif.io.ByteArrayHandle;
-import io.scif.services.LocationService;
-
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
+import org.scijava.io.DataHandle;
+import org.scijava.io.DataHandleService;
+import org.scijava.io.FileLocation;
 import org.scijava.io.IOPlugin;
 import org.scijava.io.IOService;
+import org.scijava.io.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.util.ClassUtils;
 
@@ -48,6 +52,15 @@ import org.scijava.util.ClassUtils;
 public class DefaultTableIOPluginTest {
 
 	private static final Context ctx = new Context();
+
+	@Before
+	@After
+	public void removeTempFiles() {
+		Location source = new FileLocation("table.txt");
+		new File(source.getURI()).delete();
+		source = new FileLocation("fake.csv");
+		new File(source.getURI()).delete();
+	}
 
 	/**
 	 * Tests if the parser works on a common tab-delimited table.
@@ -241,18 +254,21 @@ public class DefaultTableIOPluginTest {
 	private GenericTable openTable(final String tableSource,
 		final IOPlugin<GenericTable> tableIO) throws IOException
 	{
-		final ByteArrayHandle bah = new ByteArrayHandle(tableSource.getBytes());
-		ctx.service(LocationService.class).mapFile("table.txt", bah);
+		final Location dest = new FileLocation("table.txt");
+		final DataHandle<? extends Location> destHandle = ctx.service(DataHandleService.class).create(dest);
+		destHandle.write(tableSource.getBytes());
 		return tableIO.open("table.txt");
 	}
 
 	private String saveTable(final GenericTable table,
 		final IOPlugin<GenericTable> tableIO) throws IOException
 	{
-		final ByteArrayHandle bah = new ByteArrayHandle();
-		ctx.service(LocationService.class).mapFile("table.txt", bah);
+		final Location source = new FileLocation("table.txt");
+		// Remove file during tests
+		new File(source.getURI()).delete();
+		final DataHandle<? extends Location> sourceHandle = ctx.service(DataHandleService.class).create(source);
 		tableIO.save(table, "table.txt");
-		return new String(bah.getBytes(), 0, (int) bah.length());
+		return sourceHandle.readString(Integer.MAX_VALUE);
 	}
 
 	private void setValues(final Object instance, final String[] fieldNames,
