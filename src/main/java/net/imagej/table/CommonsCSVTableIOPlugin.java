@@ -58,7 +58,7 @@ import org.scijava.util.FileUtils;
  */
 @SuppressWarnings("rawtypes")
 @Plugin(type = IOPlugin.class, priority = Priority.LOW_PRIORITY - 1)
-public class TableIOPlugin extends AbstractIOPlugin<Table> {
+public class CommonsCSVTableIOPlugin extends AbstractIOPlugin<Table> {
 
 	@Parameter
 	private LogService log;

@@ -44,13 +44,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
- * Tests {@link TableIOPlugin}.
+ * Tests {@link CommonsCSVTableIOPlugin}.
  * 
  * @author Stefan Helfrich
  */
-public class TableIOPluginTest {
+public class CommonsCSVTableIOPluginTest {
 
-	private static TableIOPlugin tableIOPlugin;
+	private static CommonsCSVTableIOPlugin tableIOPlugin;
 
 	private static File testCsv;
 
@@ -59,7 +59,7 @@ public class TableIOPluginTest {
 
 	@BeforeClass
 	public static void setUp() throws IOException {
-		tableIOPlugin = new TableIOPlugin();
+		tableIOPlugin = new CommonsCSVTableIOPlugin();
 
 		testCsv = folder.newFile("testTableIO.csv");
 	}
