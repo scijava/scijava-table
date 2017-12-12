@@ -193,10 +193,10 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 		final Location sourceLocation = new FileLocation(source);
 		final DataHandle<? extends Location> handle = //
 				dataHandleService.create(sourceLocation);
-		long length = handle.length();
-		if (length == 0) {
+		if (!handle.exists()) {
 			throw new IOException("Cannot open source");
 		}
+		long length = handle.length();
 
 		final byte[] buffer = new byte[(int) length];
 		handle.read(buffer);
