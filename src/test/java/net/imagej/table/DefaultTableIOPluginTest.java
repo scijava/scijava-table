@@ -44,12 +44,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
-import org.scijava.io.DataHandle;
-import org.scijava.io.DataHandleService;
-import org.scijava.io.FileLocation;
+import org.scijava.io.handle.DataHandle;
+import org.scijava.io.handle.DataHandleService;
+import org.scijava.io.location.FileLocation;
 import org.scijava.io.IOPlugin;
 import org.scijava.io.IOService;
-import org.scijava.io.Location;
+import org.scijava.io.location.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.util.ClassUtils;
 
