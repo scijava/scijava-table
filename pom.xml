@@ -85,6 +85,9 @@
 Wisconsin-Madison, Broad Institute of MIT and Harvard, Max Planck
 Institute of Molecular Cell Biology and Genetics, University of
 Konstanz, and KNIME GmbH.</license.copyrightOwners>
+
+		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
+		<releaseProfiles>deploy-to-imagej</releaseProfiles>
 	</properties>
 
 	<dependencies>
