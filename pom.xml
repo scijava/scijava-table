@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>22.3.0</version>
+		<relativePath />
+	</parent>
+
+	<artifactId>scijava-table</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+
+	<name>SciJava Table</name>
+	<description>Table structures for SciJava</description>
+	<url>https://github.com/scijava/scijava-table</url>
+	<inceptionYear>2018</inceptionYear>
+	<organization>
+		<name>SciJava</name>
+		<url>http://www.scijava.org/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Simplified BSD License</name>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>ctrueden</id>
+			<name>Curtis Rueden</name>
+			<url>http://imagej.net/User:Rueden</url>
+			<roles>
+				<role>founder</role>
+				<role>lead</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>support</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+	<contributors>
+		<contributor>
+			<name>Jan Eglinger</name>
+			<url>http://imagej.net/User:Eglinger</url>
+			<properties><id>imagejan</id></properties>
+		</contributor>
+	</contributors>
+
+	<mailingLists>
+		<mailingList>
+			<name>SciJava</name>
+			<subscribe>https://groups.google.com/group/scijava</subscribe>
+			<unsubscribe>https://groups.google.com/group/scijava</unsubscribe>
+			<post>scijava@googlegroups.com</post>
+			<archive>https://groups.google.com/group/scijava</archive>
+		</mailingList>
+	</mailingLists>
+
+	<scm>
+		<connection>scm:git:git://github.com/scijava/scijava-table</connection>
+		<developerConnection>scm:git:git@github.com:scijava/scijava-table</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/scijava/scijava-table</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/scijava/scijava-table/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/scijava/scijava-table</url>
+	</ciManagement>
+
+	<properties>
+		<package-name>org.scijava</package-name>
+
+		<license.licenseName>bsd_2</license.licenseName>
+		<license.projectName>SciJava Table.</license.projectName>
+		<license.copyrightOwners>Board of Regents of the University of
+Wisconsin-Madison, Broad Institute of MIT and Harvard, Max Planck
+Institute of Molecular Cell Biology and Genetics, University of
+Konstanz, and KNIME GmbH.</license.copyrightOwners>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-common</artifactId>
+		</dependency>
+
+		<!-- Test scope dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>
