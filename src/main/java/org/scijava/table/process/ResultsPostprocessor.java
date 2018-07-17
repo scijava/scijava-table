@@ -44,7 +44,7 @@ import org.scijava.table.DefaultColumn;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericTable;
 import org.scijava.ui.UIService;
-import org.scijava.util.ClassUtils;
+import org.scijava.util.Types;
 
 /**
  * A postprocessor which aggregates simple output values into a single table,
@@ -53,7 +53,7 @@ import org.scijava.util.ClassUtils;
  * @author Curtis Rueden
  */
 @Plugin(type = PostprocessorPlugin.class,
-	priority = Priority.VERY_LOW_PRIORITY + 1)
+	priority = Priority.VERY_LOW + 1)
 public class ResultsPostprocessor extends AbstractPostprocessorPlugin {
 
 	@Parameter(required = false)
@@ -79,7 +79,7 @@ public class ResultsPostprocessor extends AbstractPostprocessorPlugin {
 		});
 
 		if (outputs.isEmpty()) return; // no compatible outputs
-		if (outputs.size() == 1 && ClassUtils.isText(outputs.get(0).getType())) {
+		if (outputs.size() == 1 && Types.isText(outputs.get(0).getType())) {
 			// sole compatible output is a string; let the TextDisplay handle it
 			return;
 		}
@@ -117,9 +117,9 @@ public class ResultsPostprocessor extends AbstractPostprocessorPlugin {
 	}
 
 	private boolean isSimpleType(final Class<?> type) {
-		return ClassUtils.isText(type) || //
-			ClassUtils.isNumber(type) || //
-			ClassUtils.isBoolean(type);
+		return Types.isText(type) || //
+				Types.isNumber(type) || //
+				Types.isBoolean(type);
 	}
 
 	private boolean isSimpleValue(final Object o) {
