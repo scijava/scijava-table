@@ -103,6 +103,11 @@ Konstanz, and KNIME GmbH.</license.copyrightOwners>
 			<artifactId>scijava-common</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-common</artifactId>
+		</dependency>
+
 		<!-- Test scope dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
