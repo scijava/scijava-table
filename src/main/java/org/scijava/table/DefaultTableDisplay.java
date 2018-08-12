@@ -91,8 +91,8 @@ public class DefaultTableDisplay extends AbstractDisplay<Table<?, ?>> implements
 
 	// -- Helper methods --
 
-	private GenericTable wrapArrayAsTable(final double[][] array) {
-		final GenericTable table = new DefaultGenericTable();
+	private DoubleTable wrapArrayAsTable(final double[][] array) {
+		final DoubleTable table = new DefaultDoubleTable();
 		int rowCount = 0;
 		for (int d = 0; d < array.length; d++) {
 			final DoubleColumn column = new DoubleColumn();
