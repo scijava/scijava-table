@@ -5,21 +5,21 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>17.2.0</version>
+		<version>23.1.1</version>
 		<relativePath />
 	</parent>
 
-	<groupId>net.imagej</groupId>
-	<artifactId>imagej-plugins-io-table</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>org.scijava</groupId>
+	<artifactId>scijava-plugins-io-table</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
 
-	<name>ImageJ IO Plugin: Tables</name>
-	<description>I/O plugins for ImageJ table objects</description>
-	<url>https://imagej.net/ImageJ_Plugins_IO_Table</url>
+	<name>SciJava IO Plugin: Tables</name>
+	<description>I/O plugins for SciJava table objects</description>
+	<url>https://imagej.net/SciJava_Plugins_IO_Table</url>
 	<inceptionYear>2017</inceptionYear>
 	<organization>
-		<name>ImageJ</name>
-		<url>https://imagej.net</url>
+		<name>SciJava</name>
+		<url>https://scijava.org</url>
 	</organization>
 	<licenses>
 		<license>
@@ -52,31 +52,36 @@
 			<url>http://imagej.net/User:Leon</url>
 			<properties><id>lnyng</id></properties>
 		</contributor>
+		<contributor>
+			<name>Jan Eglinger</name>
+			<url>http://imagej.net/User:Eglinger</url>
+			<properties><id>imagejan</id></properties>
+		</contributor>
 	</contributors>
 
 	<mailingLists>
 		<mailingList>
-			<name>ImageJ Forum</name>
-			<archive>http://forum.imagej.net/</archive>
+			<name>Image.sc Forum</name>
+			<archive>https://forum.image.sc/</archive>
 		</mailingList>
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/imagej/imagej-plugins-io-table</connection>
-		<developerConnection>scm:git:git@github.com:imagej/imagej-plugins-io-table</developerConnection>
+		<connection>scm:git:git://github.com/scijava/scijava-plugins-io-table</connection>
+		<developerConnection>scm:git:git@github.com:scijava/scijava-plugins-io-table</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/imagej/imagej-plugins-io-table</url>
+		<url>https://github.com/scijava/scijava-plugins-io-table</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/imagej/imagej-plugins-io-table/issues</url>
+		<url>https://github.com/scijava/scijava-plugins-io-table/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
 	</ciManagement>
 
 	<properties>
-		<package-name>net.imagej.table</package-name>
+		<package-name>org.scijava.table</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>Board of Regents of the University of
 Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
