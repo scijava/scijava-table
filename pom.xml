@@ -42,12 +42,26 @@
 				<role>maintainer</role>
 			</roles>
 		</developer>
+		<developer>
+			<id>imagejan</id>
+			<name>Jan Eglinger</name>
+			<url>http://imagej.net/User:Eglinger</url>
+			<roles>
+				<role>founder</role>
+				<role>developer</role>
+				<role>debugger</role>
+				<role>reviewer</role>
+				<role>maintainer</role>
+			</roles>
+		</developer>
 	</developers>
 	<contributors>
 		<contributor>
-			<name>Jan Eglinger</name>
-			<url>http://imagej.net/User:Eglinger</url>
-			<properties><id>imagejan</id></properties>
+			<name>Alison Walter</name>
+			<url>http://imagej.net/User:Awalter2</url>
+			<properties>
+				<id>awalter17</id>
+			</properties>
 		</contributor>
 	</contributors>
 
