@@ -89,6 +89,8 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
 		<releaseProfiles>deploy-to-imagej</releaseProfiles>
+		
+		<scijava-table.version>0.2.0</scijava-table.version>
 	</properties>
 
 	<repositories>
@@ -100,12 +102,13 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 
 	<dependencies>
 		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-common</artifactId>
+			<groupId>org.scijava</groupId>
+			<artifactId>scijava-common</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.scijava</groupId>
-			<artifactId>scijava-common</artifactId>
+			<artifactId>scijava-table</artifactId>
+			<version>${scijava-table.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

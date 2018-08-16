@@ -28,7 +28,7 @@
  * #L%
  */
 
-package net.imagej.table;
+package org.scijava.table;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -28,7 +28,7 @@
  * #L%
  */
 
-package net.imagej.table;
+package org.scijava.table;
 
 import static org.junit.Assert.assertTrue;
 
