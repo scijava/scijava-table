@@ -56,8 +56,9 @@ import org.scijava.util.FileUtils;
  * 
  * @author Leon Yang
  */
-@Plugin(type = IOPlugin.class, priority = Priority.LOW_PRIORITY)
-public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
+@SuppressWarnings("rawtypes")
+@Plugin(type = IOPlugin.class, priority = Priority.LOW)
+public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 
 	@Parameter
 	private DataHandleService dataHandleService;
@@ -117,8 +118,8 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 			"rtf")));
 
 	@Override
-	public Class<GenericTable> getDataType() {
-		return GenericTable.class;
+	public Class<Table> getDataType() {
+		return Table.class;
 	}
 
 	@Override
@@ -262,7 +263,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 	}
 
 	@Override
-	public void save(final GenericTable table, final String destination)
+	public void save(final Table table, final String destination)
 		throws IOException
 	{
 		// FIXME Assumes FileLocation
@@ -271,12 +272,14 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 		try (final DataHandle<Location> handle = //
 			dataHandleService.create(dstLocation))
 		{
-			final boolean writeRH = this.writeRowHeaders && table.getRowCount() > 0 &&
-					IntStream.range(0, table.getRowCount()).allMatch(row -> table
-						.getRowHeader(row) != null);
-				final boolean writeCH = this.writeColHeaders && table
-					.getColumnCount() > 0 && table.stream().allMatch(col -> col
-						.getHeader() != null);
+			final boolean writeRH = this.writeRowHeaders && //
+				table.getRowCount() > 0 && //
+				IntStream.range(0, table.getRowCount()).allMatch(row -> table
+					.getRowHeader(row) != null);
+			final boolean writeCH = this.writeColHeaders && //
+				table.getColumnCount() > 0 && //
+				IntStream.range(0, table.getColumnCount()).allMatch(col -> table
+					.getColumnHeader(col) != null);
 
 				final StringBuilder sb = new StringBuilder();
 				// write column headers

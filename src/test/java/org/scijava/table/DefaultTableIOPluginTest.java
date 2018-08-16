@@ -60,6 +60,7 @@ import org.scijava.util.ClassUtils;
  * 
  * @author Leon Yang
  */
+@SuppressWarnings("rawtypes")
 public class DefaultTableIOPluginTest {
 
 	private static final Context ctx = new Context();
@@ -95,7 +96,7 @@ public class DefaultTableIOPluginTest {
 			"123.000\t-123.000\t123.000\t123.000\t0.000\n" +
 			"0.000\t1234567890.099\tNaN\t-Infinity\t0.000\n";
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
 			final Function<String, Double> parser = Double::valueOf;
@@ -106,7 +107,7 @@ public class DefaultTableIOPluginTest {
 				"cornerText", "parser", "formatter" }, new Object[] { true, true, false,
 					true, "\t", "\n", "\"", "\\", parser, formatter });
 
-			final GenericTable table = openTable(tableSource, tableIO);
+			final Table table = openTable(tableSource, tableIO);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 			assertEquals(expected, saveTable(table, tableIO));
 		}
@@ -140,7 +141,7 @@ public class DefaultTableIOPluginTest {
 			"'should\tnot,break',unnecessary_quotes,should,break\r\n" +
 			"'some,empty,cells','','',''\r\n";
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
 			setValues(tableIO, new String[] { "readColHeaders", "writeColHeaders",
@@ -149,7 +150,7 @@ public class DefaultTableIOPluginTest {
 					true, " ", "\r\n", '\'', "CORNER_TEXT", Function.identity(), Function
 						.identity() });
 
-			final GenericTable table = openTable(tableSource, tableIO);
+			final Table table = openTable(tableSource, tableIO);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 
 			setValues(tableIO, new String[] { "separator" }, new Object[] { ',' });
@@ -181,10 +182,10 @@ public class DefaultTableIOPluginTest {
 		final Double[][] content = { { 3.1415926 } };
 		final Double[][] emptyContent = { {} };
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
-			GenericTable table;
+			Table table;
 			String expected;
 			final Function<String, Double> parser = Double::valueOf;
 			final Function<Double, String> formatter = val -> String.format("%.3f",
@@ -238,7 +239,7 @@ public class DefaultTableIOPluginTest {
 
 	@Test(expected = IOException.class)
 	public void testOpenNonExist() throws IOException {
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		tableIO.open("fake.csv");
 	}
@@ -250,7 +251,7 @@ public class DefaultTableIOPluginTest {
 	 */
 	private void assertTableEquals(final String[] colHeaders,
 		final String[] rowHeaders, final Object[][] content,
-		final GenericTable table)
+		final Table table)
 	{
 		assertEquals(colHeaders.length, table.getColumnCount());
 		assertEquals(rowHeaders.length, table.getRowCount());
@@ -265,11 +266,11 @@ public class DefaultTableIOPluginTest {
 		}
 	}
 
-	private GenericTable openTable(final String tableSource,
-		final IOPlugin<GenericTable> tableIO) throws IOException
+	private Table openTable(final String tableSource,
+		final IOPlugin<Table> tableIO) throws IOException
 	{
 		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
-		GenericTable result;
+		Table result;
 		File tempFile = File.createTempFile("openTest", ".txt");
 		tempFiles.add(tempFile);
 		try (DataHandle<Location> destHandle = dataHandleService.create(new FileLocation(tempFile))) {
@@ -279,8 +280,8 @@ public class DefaultTableIOPluginTest {
 		return result;
 	}
 
-	private String saveTable(final GenericTable table,
-		final IOPlugin<GenericTable> tableIO) throws IOException
+	private String saveTable(final Table table,
+		final IOPlugin<Table> tableIO) throws IOException
 	{
 		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
 		String result;
