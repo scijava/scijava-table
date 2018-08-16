@@ -191,131 +191,138 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<GenericTable> {
 	public GenericTable open(final String source) throws IOException {
 		// FIXME Assumes FileLocation
 		final Location sourceLocation = new FileLocation(source);
-		final DataHandle<? extends Location> handle = //
-				dataHandleService.create(sourceLocation);
-		if (!handle.exists()) {
-			throw new IOException("Cannot open source");
-		}
-		long length = handle.length();
-
-		final byte[] buffer = new byte[(int) length];
-		handle.read(buffer);
-		final String text = new String(buffer);
-
 		final GenericTable table = new DefaultGenericTable();
 
-		// split by any line delimiter
-		final String[] lines = text.split("\\R");
-		if (lines.length == 0) return table;
-		// process first line to get number of cols
+		try (final DataHandle<? extends Location> handle = //
+			dataHandleService.create(sourceLocation))
 		{
-			final ArrayList<String> tokens = processRow(lines[0]);
-			if (readColHeaders) {
-				final List<String> colHeaders;
-				if (readRowHeaders) colHeaders = tokens.subList(1, tokens.size());
-				else colHeaders = tokens;
-				final String[] colHeadersArr = new String[colHeaders.size()];
-				table.appendColumns(colHeaders.toArray(colHeadersArr));
+			if (!handle.exists()) {
+				throw new IOException("Cannot open source");
 			}
-			else {
+			long length = handle.length();
+
+			final byte[] buffer = new byte[(int) length];
+			handle.read(buffer);
+
+			final String text = new String(buffer);
+
+
+			// split by any line delimiter
+			final String[] lines = text.split("\\R");
+			if (lines.length == 0) return table;
+			// process first line to get number of cols
+			{
+				final ArrayList<String> tokens = processRow(lines[0]);
+				if (readColHeaders) {
+					final List<String> colHeaders;
+					if (readRowHeaders) colHeaders = tokens.subList(1, tokens.size());
+					else colHeaders = tokens;
+					final String[] colHeadersArr = new String[colHeaders.size()];
+					table.appendColumns(colHeaders.toArray(colHeadersArr));
+				}
+				else {
+					final List<String> cols;
+					if (readRowHeaders) {
+						cols = tokens.subList(1, tokens.size());
+						table.appendColumns(cols.size());
+						table.appendRow(tokens.get(0));
+					}
+					else {
+						cols = tokens;
+						table.appendColumns(cols.size());
+						table.appendRow();
+					}
+					for (int i = 0; i < cols.size(); i++) {
+						table.set(i, 0, parser.apply(cols.get(i)));
+					}
+				}
+			}
+			for (int lineNum = 1; lineNum < lines.length; lineNum++) {
+				final String line = lines[lineNum];
+				final ArrayList<String> tokens = processRow(line);
 				final List<String> cols;
 				if (readRowHeaders) {
 					cols = tokens.subList(1, tokens.size());
-					table.appendColumns(cols.size());
 					table.appendRow(tokens.get(0));
 				}
 				else {
 					cols = tokens;
-					table.appendColumns(cols.size());
 					table.appendRow();
 				}
-				for (int i = 0; i < cols.size(); i++) {
-					table.set(i, 0, parser.apply(cols.get(i)));
+				if (cols.size() != table.getColumnCount()) {
+					throw new IOException("Line " + table.getRowCount() +
+						" is not the same length as the first line.");
 				}
-			}
-		}
-		for (int lineNum = 1; lineNum < lines.length; lineNum++) {
-			final String line = lines[lineNum];
-			final ArrayList<String> tokens = processRow(line);
-			final List<String> cols;
-			if (readRowHeaders) {
-				cols = tokens.subList(1, tokens.size());
-				table.appendRow(tokens.get(0));
-			}
-			else {
-				cols = tokens;
-				table.appendRow();
-			}
-			if (cols.size() != table.getColumnCount()) {
-				throw new IOException("Line " + table.getRowCount() +
-					" is not the same length as the first line.");
-			}
-			for (int i = 0; i < cols.size(); i++) {
-				table.set(i, lineNum - 1, parser.apply(cols.get(i)));
+				for (int i = 0; i < cols.size(); i++) {
+					table.set(i, lineNum - 1, parser.apply(cols.get(i)));
+				}
 			}
 		}
 		return table;
 	}
 
 	@Override
-	public void save(final GenericTable table, final String source)
+	public void save(final GenericTable table, final String destination)
 		throws IOException
 	{
 		// FIXME Assumes FileLocation
-		final Location sourceLocation = new FileLocation(source);
-		final DataHandle<Location> handle = //
-				dataHandleService.create(sourceLocation);
+		final Location dstLocation = new FileLocation(destination);
 
-		final boolean writeRH = this.writeRowHeaders && table.getRowCount() > 0 &&
-			IntStream.range(0, table.getRowCount()).allMatch(row -> table
-				.getRowHeader(row) != null);
-		final boolean writeCH = this.writeColHeaders && table
-			.getColumnCount() > 0 && table.stream().allMatch(col -> col
-				.getHeader() != null);
+		try (final DataHandle<Location> handle = //
+			dataHandleService.create(dstLocation))
+		{
+			final boolean writeRH = this.writeRowHeaders && table.getRowCount() > 0 &&
+					IntStream.range(0, table.getRowCount()).allMatch(row -> table
+						.getRowHeader(row) != null);
+				final boolean writeCH = this.writeColHeaders && table
+					.getColumnCount() > 0 && table.stream().allMatch(col -> col
+						.getHeader() != null);
 
-		final StringBuilder sb = new StringBuilder();
-		// write column headers
-		if (writeCH) {
-			if (writeRH) {
-				sb.append(tryQuote(cornerText));
-				if (table.getColumnCount() > 0) {
-					sb.append(separator);
-					sb.append(tryQuote(table.getColumnHeader(0)));
+				final StringBuilder sb = new StringBuilder();
+				// write column headers
+				if (writeCH) {
+					if (writeRH) {
+						sb.append(tryQuote(cornerText));
+						if (table.getColumnCount() > 0) {
+							sb.append(separator);
+							sb.append(tryQuote(table.getColumnHeader(0)));
+						}
+					}
+					// avoid adding extra separator when there is 0 column
+					else if (table.getColumnCount() > 0) {
+						sb.append(tryQuote(table.getColumnHeader(0)));
+					}
+					for (int col = 1; col < table.getColumnCount(); col++) {
+						sb.append(separator);
+						sb.append(tryQuote(table.getColumnHeader(col)));
+					}
+					sb.append(eol);
+					handle.writeBytes(sb.toString());
+					sb.setLength(0);
 				}
-			}
-			// avoid adding extra separator when there is 0 column
-			else if (table.getColumnCount() > 0) {
-				sb.append(tryQuote(table.getColumnHeader(0)));
-			}
-			for (int col = 1; col < table.getColumnCount(); col++) {
-				sb.append(separator);
-				sb.append(tryQuote(table.getColumnHeader(col)));
-			}
-			sb.append(eol);
-			handle.writeBytes(sb.toString());
-			sb.setLength(0);
-		}
-		// write each row
-		for (int row = 0; row < table.getRowCount(); row++) {
-			if (writeRH) {
-				sb.append(tryQuote(table.getRowHeader(row)));
-				if (table.getColumnCount() > 0) {
-					sb.append(separator);
-					sb.append(tryQuote(formatter.apply(table.get(0, row))));
+				// write each row
+				for (int row = 0; row < table.getRowCount(); row++) {
+					if (writeRH) {
+						sb.append(tryQuote(table.getRowHeader(row)));
+						if (table.getColumnCount() > 0) {
+							sb.append(separator);
+							sb.append(tryQuote(formatter.apply(table.get(0, row))));
+						}
+					}
+					// avoid adding extra separator when there is 0 column
+					else if (table.getColumnCount() > 0) {
+						sb.append(tryQuote(formatter.apply(table.get(0, row))));
+					}
+					for (int col = 1; col < table.getColumnCount(); col++) {
+						sb.append(separator);
+						sb.append(tryQuote(formatter.apply(table.get(col, row))));
+					}
+					sb.append(eol);
+					handle.writeBytes(sb.toString());
+					sb.setLength(0);
 				}
-			}
-			// avoid adding extra separator when there is 0 column
-			else if (table.getColumnCount() > 0) {
-				sb.append(tryQuote(formatter.apply(table.get(0, row))));
-			}
-			for (int col = 1; col < table.getColumnCount(); col++) {
-				sb.append(separator);
-				sb.append(tryQuote(formatter.apply(table.get(col, row))));
-			}
-			sb.append(eol);
-			handle.writeBytes(sb.toString());
-			sb.setLength(0);
 		}
+
 	}
 
 	/**
