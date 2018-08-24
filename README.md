@@ -1,6 +1,6 @@
-[![](https://travis-ci.org/imagej/imagej-plugins-io-table.svg?branch=master)](https://travis-ci.org/imagej/imagej-plugins-io-table)
+[![Build Status](https://travis-ci.org/scijava/scijava-plugins-io-table.svg?branch=master)](https://travis-ci.org/scijava/scijava-plugins-io-table)
 
-ImageJ IO Plugins: Table
+SciJava IO Plugins: Table
 ------------------------
 
-I/O plugins for ImageJ `Table` objects.
+I/O plugins for SciJava `Table` objects.

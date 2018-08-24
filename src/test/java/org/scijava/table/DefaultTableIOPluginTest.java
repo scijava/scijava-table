@@ -1,9 +1,10 @@
 /*
  * #%L
- * ImageJ software for multidimensional image processing and analysis.
+ * ImageJ software for multidimensional image
+ * 			processing and analysis.
  * %%
- * Copyright (C) 2017 Board of Regents of the University of
- * Wisconsin-Madison and University of Konstanz.
+ * Copyright (C) 2017 - 2018 Board of Regents of the University of
+ * 			Wisconsin-Madison and University of Konstanz.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,14 +29,16 @@
  * #L%
  */
 
-package net.imagej.table;
+package org.scijava.table;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -44,11 +47,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
+import org.scijava.io.IOPlugin;
+import org.scijava.io.IOService;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
 import org.scijava.io.location.FileLocation;
-import org.scijava.io.IOPlugin;
-import org.scijava.io.IOService;
 import org.scijava.io.location.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.util.ClassUtils;
@@ -58,17 +61,21 @@ import org.scijava.util.ClassUtils;
  * 
  * @author Leon Yang
  */
+@SuppressWarnings("rawtypes")
 public class DefaultTableIOPluginTest {
 
 	private static final Context ctx = new Context();
+	
+	private List<File> tempFiles = new ArrayList<>();
 
 	@Before
 	@After
 	public void removeTempFiles() {
-		Location source = new FileLocation("table.txt");
+		Location source = new FileLocation("fake.csv");
 		new File(source.getURI()).delete();
-		source = new FileLocation("fake.csv");
-		new File(source.getURI()).delete();
+		for (File f : tempFiles) {
+			assertTrue(f.delete());
+		}
 	}
 
 	/**
@@ -90,7 +97,7 @@ public class DefaultTableIOPluginTest {
 			"123.000\t-123.000\t123.000\t123.000\t0.000\n" +
 			"0.000\t1234567890.099\tNaN\t-Infinity\t0.000\n";
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
 			final Function<String, Double> parser = Double::valueOf;
@@ -101,7 +108,7 @@ public class DefaultTableIOPluginTest {
 				"cornerText", "parser", "formatter" }, new Object[] { true, true, false,
 					true, "\t", "\n", "\"", "\\", parser, formatter });
 
-			final GenericTable table = openTable(tableSource, tableIO);
+			final Table table = openTable(tableSource, tableIO);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 			assertEquals(expected, saveTable(table, tableIO));
 		}
@@ -135,7 +142,7 @@ public class DefaultTableIOPluginTest {
 			"'should\tnot,break',unnecessary_quotes,should,break\r\n" +
 			"'some,empty,cells','','',''\r\n";
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
 			setValues(tableIO, new String[] { "readColHeaders", "writeColHeaders",
@@ -144,7 +151,7 @@ public class DefaultTableIOPluginTest {
 					true, " ", "\r\n", '\'', "CORNER_TEXT", Function.identity(), Function
 						.identity() });
 
-			final GenericTable table = openTable(tableSource, tableIO);
+			final Table table = openTable(tableSource, tableIO);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 
 			setValues(tableIO, new String[] { "separator" }, new Object[] { ',' });
@@ -176,10 +183,10 @@ public class DefaultTableIOPluginTest {
 		final Double[][] content = { { 3.1415926 } };
 		final Double[][] emptyContent = { {} };
 
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		try {
-			GenericTable table;
+			Table table;
 			String expected;
 			final Function<String, Double> parser = Double::valueOf;
 			final Function<Double, String> formatter = val -> String.format("%.3f",
@@ -233,7 +240,7 @@ public class DefaultTableIOPluginTest {
 
 	@Test(expected = IOException.class)
 	public void testOpenNonExist() throws IOException {
-		final IOPlugin<GenericTable> tableIO = ctx.service(IOService.class)
+		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
 			.getInstance(DefaultTableIOPlugin.class);
 		tableIO.open("fake.csv");
 	}
@@ -245,7 +252,7 @@ public class DefaultTableIOPluginTest {
 	 */
 	private void assertTableEquals(final String[] colHeaders,
 		final String[] rowHeaders, final Object[][] content,
-		final GenericTable table)
+		final Table table)
 	{
 		assertEquals(colHeaders.length, table.getColumnCount());
 		assertEquals(rowHeaders.length, table.getRowCount());
@@ -260,24 +267,32 @@ public class DefaultTableIOPluginTest {
 		}
 	}
 
-	private GenericTable openTable(final String tableSource,
-		final IOPlugin<GenericTable> tableIO) throws IOException
+	private Table openTable(final String tableSource,
+		final IOPlugin<Table> tableIO) throws IOException
 	{
-		final Location dest = new FileLocation("table.txt");
-		final DataHandle<? extends Location> destHandle = ctx.service(DataHandleService.class).create(dest);
-		destHandle.write(tableSource.getBytes());
-		return tableIO.open("table.txt");
+		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
+		Table result;
+		File tempFile = File.createTempFile("openTest", ".txt");
+		tempFiles.add(tempFile);
+		try (DataHandle<Location> destHandle = dataHandleService.create(new FileLocation(tempFile))) {
+			destHandle.write(tableSource.getBytes());
+			result = tableIO.open(tempFile.getAbsolutePath());
+		}
+		return result;
 	}
 
-	private String saveTable(final GenericTable table,
-		final IOPlugin<GenericTable> tableIO) throws IOException
+	private String saveTable(final Table table,
+		final IOPlugin<Table> tableIO) throws IOException
 	{
-		final Location source = new FileLocation("table.txt");
-		// Remove file during tests
-		new File(source.getURI()).delete();
-		final DataHandle<? extends Location> sourceHandle = ctx.service(DataHandleService.class).create(source);
-		tableIO.save(table, "table.txt");
-		return sourceHandle.readString(Integer.MAX_VALUE);
+		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
+		String result;
+		File tempFile = File.createTempFile("saveTest", ".txt");
+		tempFiles.add(tempFile);
+		try (DataHandle<Location> sourceHandle = dataHandleService.create(new FileLocation(tempFile))) {
+			tableIO.save(table, tempFile.getAbsolutePath());
+			result = sourceHandle.readString(Integer.MAX_VALUE);
+		}
+		return result;
 	}
 
 	private void setValues(final Object instance, final String[] fieldNames,
