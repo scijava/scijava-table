@@ -11,7 +11,7 @@
 
 	<groupId>org.scijava</groupId>
 	<artifactId>scijava-plugins-io-table</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 
 	<name>SciJava IO Plugin: Tables</name>
 	<description>I/O plugins for SciJava table objects</description>
