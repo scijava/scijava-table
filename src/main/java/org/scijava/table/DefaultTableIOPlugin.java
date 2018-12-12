@@ -1,10 +1,9 @@
 /*
  * #%L
- * ImageJ software for multidimensional image
- * 			processing and analysis.
+ * I/O plugins for SciJava table objects.
  * %%
  * Copyright (C) 2017 - 2018 Board of Regents of the University of
- * 			Wisconsin-Madison and University of Konstanz.
+ * Wisconsin-Madison and University of Konstanz.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
