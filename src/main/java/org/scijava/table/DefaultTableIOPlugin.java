@@ -30,6 +30,7 @@
 
 package org.scijava.table;
 
+import java.net.URISyntaxException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,11 +43,11 @@ import java.util.stream.IntStream;
 
 import org.scijava.Priority;
 import org.scijava.io.AbstractIOPlugin;
+import org.scijava.io.IOPlugin;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
-import org.scijava.io.location.FileLocation;
-import org.scijava.io.IOPlugin;
 import org.scijava.io.location.Location;
+import org.scijava.io.location.LocationService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.FileUtils;
@@ -59,6 +60,9 @@ import org.scijava.util.FileUtils;
 @SuppressWarnings("rawtypes")
 @Plugin(type = IOPlugin.class, priority = Priority.LOW)
 public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
+
+	@Parameter
+	private LocationService locationService;
 
 	@Parameter
 	private DataHandleService dataHandleService;
@@ -190,8 +194,13 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 
 	@Override
 	public GenericTable open(final String source) throws IOException {
-		// FIXME Assumes FileLocation
-		final Location sourceLocation = new FileLocation(source);
+		final Location sourceLocation;
+		try {
+			sourceLocation = locationService.resolve(source);
+		}
+		catch (final URISyntaxException exc) {
+			throw new IOException("Unresolvable source: " + source, exc);
+		}
 		final GenericTable table = new DefaultGenericTable();
 
 		try (final DataHandle<? extends Location> handle = //
@@ -266,8 +275,13 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 	public void save(final Table table, final String destination)
 		throws IOException
 	{
-		// FIXME Assumes FileLocation
-		final Location dstLocation = new FileLocation(destination);
+		final Location dstLocation;
+		try {
+			dstLocation = locationService.resolve(destination);
+		}
+		catch (final URISyntaxException exc) {
+			throw new IOException("Unresolvable destination: " + destination, exc);
+		}
 
 		try (final DataHandle<Location> handle = //
 			dataHandleService.create(dstLocation))
