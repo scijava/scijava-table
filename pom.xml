@@ -59,7 +59,7 @@
 	<contributors>
 		<contributor>
 			<name>Leon Yang</name>
-			<url>http://imagej.net/User:Leon</url>
+			<url>https://imagej.net/User:Leon</url>
 			<properties>
 				<id>lnyng</id>
 			</properties>
@@ -126,7 +126,7 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 	<repositories>
 		<repository>
 			<id>imagej.public</id>
-			<url>http://maven.imagej.net/content/groups/public</url>
+			<url>https://maven.imagej.net/content/groups/public</url>
 		</repository>
 	</repositories>
 </project>
