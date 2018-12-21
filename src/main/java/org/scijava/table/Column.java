@@ -30,7 +30,10 @@
 
 package org.scijava.table;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.scijava.util.Sizable;
 
@@ -59,4 +62,60 @@ public interface Column<T> extends List<T>, Sizable {
 	/** Returns the actual type of data stored in the column. */
 	Class<T> getType();
 
+	// -- List and Collection methods --
+
+	@Override
+	default boolean isEmpty() {
+		return size() == 0;
+	}
+
+	@Override
+	default boolean contains(final Object o) {
+		return indexOf(o) >= 0;
+	}
+
+	@Override
+	default Iterator<T> iterator() {
+		return listIterator();
+	}
+
+	@Override
+	default Object[] toArray() {
+		return SimpleCollections.toArray(this);
+	}
+
+	@Override
+	default <E> E[] toArray(E[] a) {
+		return SimpleCollections.toArray(this, a);
+	}
+
+	@Override
+	default boolean containsAll(Collection<?> c) {
+		return SimpleCollections.containsAll(this, c);
+	}
+
+	@Override
+	default int indexOf(Object o) {
+		return SimpleCollections.indexOf(this, o);
+	}
+
+	@Override
+	default int lastIndexOf(Object o) {
+		return SimpleCollections.lastIndexOf(this, o);
+	}
+
+	@Override
+	default ListIterator<T> listIterator() {
+		return listIterator(0);
+	}
+
+	@Override
+	default ListIterator<T> listIterator(final int index) {
+		return SimpleCollections.listIterator(this, index);
+	}
+
+	@Override
+	default List<T> subList(int fromIndex, int toIndex) {
+		return SimpleCollections.subList(this, fromIndex, toIndex);
+	}
 }
