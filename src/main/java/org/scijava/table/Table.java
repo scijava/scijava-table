@@ -30,15 +30,12 @@
 
 package org.scijava.table;
 
-import java.lang.reflect.Array;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * A table of values.
@@ -395,7 +392,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 		return get(col).get(row);
 	}
 
-	// -- List methods --
+	// -- List and Collection methods --
 
 	/** Gets the number of columns in the table. */
 	@Override
@@ -430,10 +427,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default Object[] toArray() {
-		final Object[] columns = new Object[getColumnCount()];
-		for (int c = 0; c < columns.length; c++)
-			columns[c] = get(c);
-		return columns;
+		return SimpleCollections.toArray(this);
 	}
 
 	/**
@@ -445,14 +439,8 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * list of columns.
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	default <A> A[] toArray(final A[] a) {
-		final A[] columns = a.length >= getColumnCount() ? a : //
-			(A[]) Array.newInstance(a.getClass().getComponentType(),
-				getColumnCount());
-		for (int c = 0; c < getColumnCount(); c++)
-			columns[c] = (A) get(c);
-		return columns;
+		return SimpleCollections.toArray(this, a);
 	}
 
 	/**
@@ -464,8 +452,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean add(final C column) {
-		add(getColumnCount(), column);
-		return true;
+		return SimpleCollections.add(this, column);
 	}
 
 	/**
@@ -476,10 +463,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean remove(final Object column) {
-		final int colIndex = indexOf(column);
-		if (colIndex < 0) return false;
-		remove(colIndex);
-		return true;
+		return SimpleCollections.remove(this, column);
 	}
 
 	/**
@@ -488,10 +472,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean containsAll(final Collection<?> c) {
-		for (final Object column : c) {
-			if (!contains(column)) return false;
-		}
-		return true;
+		return SimpleCollections.containsAll(this, c);
 	}
 
 	/**
@@ -507,10 +488,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean addAll(final Collection<? extends C> c) {
-		boolean changed = false;
-		for (final C column : c)
-			changed |= add(column);
-		return changed;
+		return SimpleCollections.addAll(this, c);
 	}
 
 	/**
@@ -525,10 +503,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean addAll(final int col, final Collection<? extends C> c) {
-		int index = col;
-		for (final C column : c)
-			add(index++, column);
-		return c.size() > 0;
+		return SimpleCollections.addAll(this, col, c);
 	}
 
 	/**
@@ -539,10 +514,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean removeAll(final Collection<?> c) {
-		boolean changed = false;
-		for (final Object column : c)
-			changed |= remove(column);
-		return changed;
+		return SimpleCollections.removeAll(this, c);
 	}
 
 	/**
@@ -554,10 +526,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default boolean retainAll(final Collection<?> c) {
-		final List<?> absent = stream() //
-			.filter(column -> !c.contains(column)) //
-			.collect(Collectors.toList());
-		return removeAll(absent);
+		return SimpleCollections.retainAll(this, c);
 	}
 
 	/**
@@ -613,9 +582,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default int indexOf(final Object column) {
-		for (int c = 0; c < size(); c++)
-			if (Objects.equals(get(c), column)) return c;
-		return -1;
+		return SimpleCollections.indexOf(this, column);
 	}
 
 	/**
@@ -624,9 +591,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default int lastIndexOf(final Object column) {
-		for (int c = size() - 1; c >= 0; c--)
-			if (Objects.equals(get(c), column)) return c;
-		return -1;
+		return SimpleCollections.lastIndexOf(this, column);
 	}
 
 	/**
@@ -643,61 +608,7 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default ListIterator<C> listIterator(final int col) {
-
-		return new ListIterator<C>() {
-
-			int last = -1;
-			int c = col;
-
-			@Override
-			public boolean hasNext() {
-				return c < getColumnCount();
-			}
-
-			@Override
-			public C next() {
-				return get(last = c++);
-			}
-
-			@Override
-			public boolean hasPrevious() {
-				return c > 0;
-			}
-
-			@Override
-			public C previous() {
-				return get(last = --c);
-			}
-
-			@Override
-			public int nextIndex() {
-				return c;
-			}
-
-			@Override
-			public int previousIndex() {
-				return c - 1;
-			}
-
-			@Override
-			public void remove() {
-				if (last < 0) throw new IllegalStateException();
-				Table.this.remove(last);
-				last = -1;
-			}
-
-			@Override
-			public void set(final C e) {
-				if (last < 0) throw new IllegalStateException();
-				Table.this.set(last, e);
-			}
-
-			@Override
-			public void add(final C e) {
-				Table.this.add(c++, e);
-				last = -1;
-			}
-		};
+		return SimpleCollections.listIterator(this, col);
 	}
 
 	/**
@@ -708,17 +619,6 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 */
 	@Override
 	default List<C> subList(final int fromCol, final int toCol) {
-		return new AbstractList<C>() {
-
-			@Override
-			public C get(final int index) {
-				return Table.this.get(index + fromCol);
-			}
-
-			@Override
-			public int size() {
-				return toCol - fromCol;
-			}
-		};
+		return SimpleCollections.subList(this, fromCol, toCol);
 	}
 }
