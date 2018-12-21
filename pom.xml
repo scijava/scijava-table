@@ -13,12 +13,12 @@
 	<version>0.2.1-SNAPSHOT</version>
 
 	<name>SciJava Table</name>
-	<description>Table structures for SciJava</description>
+	<description>Table structures for SciJava.</description>
 	<url>https://github.com/scijava/scijava-table</url>
-	<inceptionYear>2018</inceptionYear>
+	<inceptionYear>2012</inceptionYear>
 	<organization>
 		<name>SciJava</name>
-		<url>http://www.scijava.org/</url>
+		<url>https://scijava.org/</url>
 	</organization>
 	<licenses>
 		<license>
@@ -31,7 +31,7 @@
 		<developer>
 			<id>ctrueden</id>
 			<name>Curtis Rueden</name>
-			<url>http://imagej.net/User:Rueden</url>
+			<url>https://imagej.net/User:Rueden</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
@@ -45,7 +45,7 @@
 		<developer>
 			<id>imagejan</id>
 			<name>Jan Eglinger</name>
-			<url>http://imagej.net/User:Eglinger</url>
+			<url>https://imagej.net/User:Eglinger</url>
 			<roles>
 				<role>founder</role>
 				<role>developer</role>
@@ -58,10 +58,13 @@
 	<contributors>
 		<contributor>
 			<name>Alison Walter</name>
-			<url>http://imagej.net/User:Awalter2</url>
-			<properties>
-				<id>awalter17</id>
-			</properties>
+			<url>https://imagej.net/User:Awalter2</url>
+			<properties><id>awalter17</id></properties>
+		</contributor>
+		<contributor>
+			<name>Barry DeZonia</name>
+			<url>https://imagej.net/User:Bdezonia</url>
+			<properties><id>bdezonia</id></properties>
 		</contributor>
 	</contributors>
 
@@ -91,14 +94,11 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>org.scijava</package-name>
+		<package-name>org.scijava.table</package-name>
 
 		<license.licenseName>bsd_2</license.licenseName>
-		<license.projectName>SciJava Table.</license.projectName>
 		<license.copyrightOwners>Board of Regents of the University of
-Wisconsin-Madison, Broad Institute of MIT and Harvard, Max Planck
-Institute of Molecular Cell Biology and Genetics, University of
-Konstanz, and KNIME GmbH.</license.copyrightOwners>
+Wisconsin-Madison, and Friedrich Miescher Institute for Biomedical Research.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the ImageJ Maven repository. -->
 		<releaseProfiles>deploy-to-imagej</releaseProfiles>
