@@ -31,10 +31,12 @@
 
 package org.scijava.table;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 
 /**
  * A table of values.
@@ -46,48 +48,69 @@ import java.util.ListIterator;
 public interface Table<C extends Column<? extends T>, T> extends List<C> {
 
 	/** Gets the number of columns in the table. */
-	int getColumnCount();
+	default int getColumnCount() {
+		return size();
+	}
 
 	/** Sets the number of columns in the table. */
 	void setColumnCount(int colCount);
 
 	/** Returns the first column with the given header in the table. */
-	C get(String colHeader);
+	default C get(final String colHeader) {
+		return get(Tables.colIndex(this, colHeader));
+	}
 
 	/**
 	 * Appends a column (with no header) to the table.
 	 * 
 	 * @return the column that was appended
 	 */
-	C appendColumn();
+	default C appendColumn() {
+		return appendColumn(null);
+	}
 
 	/**
 	 * Appends a column with the given header to the table.
 	 * 
 	 * @return the column that was appended
 	 */
-	C appendColumn(String header);
+	default C appendColumn(final String colHeader) {
+		return insertColumn(getColumnCount(), colHeader);
+	}
 
 	/**
 	 * Appends a number of columns (with no headers) to the table.
 	 * 
 	 * @return the columns that were appended
 	 */
-	List<C> appendColumns(int count);
+	default List<C> appendColumns(final int count) {
+		final ArrayList<C> result = new ArrayList<>(count);
+		for (int c = 0; c < count; c++)
+			result.add(appendColumn());
+		return result;
+	}
 
 	/**
 	 * Appends a block of columns with the given headers to the table.
 	 * 
 	 * @return the columns that were appended
 	 */
-	List<C> appendColumns(String... headers);
+	default List<C> appendColumns(final String... colHeaders) {
+		final ArrayList<C> result = new ArrayList<>(colHeaders.length);
+		for (final String colHeader : colHeaders) {
+			result.add(appendColumn(colHeader));
+		}
+		return result;
+	}
 
 	/**
 	 * Inserts a column (with no header) at the given position in the table.
 	 * 
 	 * @return the column that was inserted
 	 */
-	C insertColumn(int col);
+	default C insertColumn(final int col) {
+		return insertColumn(col, null);
+	}
 
 	/**
 	 * Inserts a column with the specified header at the given position in the
@@ -95,7 +118,11 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * 
 	 * @return the column that was inserted
 	 */
-	C insertColumn(int col, String header);
+	default C insertColumn(final int col, final String colHeader) {
+		final List<C> result = insertColumns(col, 1);
+		setColumnHeader(col, colHeader);
+		return result.get(0);
+	}
 
 	/**
 	 * Inserts a block of columns (with no headers) at the given position in the
@@ -111,35 +138,74 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * 
 	 * @return the columns that were inserted
 	 */
-	List<C> insertColumns(int col, String... headers);
+	default List<C> insertColumns(final int col, final String... headers) {
+		// insert empty columns as a block
+		final List<C> result = insertColumns(col, headers.length);
+
+		// set headers for newly inserted columns
+		for (int c = 0; c < headers.length; c++) {
+			setColumnHeader(col + c, headers[c]);
+		}
+		return result;
+	}
 
 	/**
 	 * Removes the column at the given position from the table.
 	 * 
 	 * @return the column that was removed
 	 */
-	C removeColumn(int col);
+	default C removeColumn(final int col) {
+		return remove(col);
+	}
 
 	/**
 	 * Removes the first column with the given header from the table.
 	 * 
 	 * @return the column that was removed
 	 */
-	C removeColumn(String header);
+	default C removeColumn(final String colHeader) {
+		return removeColumn(Tables.colIndex(this, colHeader));
+	}
 
 	/**
 	 * Removes a block of columns starting at the given position from the table.
 	 * 
 	 * @return the columns that were removed
 	 */
-	List<C> removeColumns(int col, int count);
+	default List<C> removeColumns(final int col, final int count) {
+		Tables.checkCol(this, col, count);
+
+		// save to-be-removed columns
+		final ArrayList<C> result = new ArrayList<>(count);
+		for (int c = 0; c < count; c++) {
+			result.add(get(col + c));
+		}
+
+		final int oldColCount = getColumnCount();
+		final int newColCount = oldColCount - count;
+
+		// copy data after the deleted range into the new position
+		for (int oldC = col+count; oldC < oldColCount; oldC++) {
+			final int newC = oldC - count;
+			set(newC, get(oldC));
+		}
+		setColumnCount(newColCount);
+
+		return result;
+	}
 
 	/**
 	 * Removes the first columns with the given headers from the table.
 	 * 
 	 * @return the columns that were removed
 	 */
-	List<C> removeColumns(String... headers);
+	default List<C> removeColumns(final String... colHeaders) {
+		final ArrayList<C> result = new ArrayList<>(colHeaders.length);
+		for (final String colHeader : colHeaders) {
+			result.add(removeColumn(colHeader));
+		}
+		return result;
+	}
 
 	/** Gets the number of rows in the table. */
 	int getRowCount();
@@ -148,42 +214,112 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	void setRowCount(int rowCount);
 
 	/** Appends a row (with no header) to the table. */
-	void appendRow();
+	default void appendRow() {
+		appendRow(null);
+	}
 
 	/** Appends a row with the given header to the table. */
-	void appendRow(String header);
+	default void appendRow(final String header) {
+		insertRow(getRowCount(), header);
+	}
 
 	/** Appends a block of rows (with no headers) to the table. */
-	void appendRows(int count);
+	default void appendRows(final int count) {
+		for (int c = 0; c < count; c++) {
+			appendRow();
+		}
+	}
 
 	/** Appends a block of rows with the given headers to the table. */
-	void appendRows(String... headers);
+	default void appendRows(final String... headers) {
+		for (final String header : headers) {
+			appendRow(header);
+		}
+	}
 
 	/** Inserts a row (with no header) at the given position in the table. */
-	void insertRow(int row);
+	default void insertRow(final int row) {
+		insertRow(row, null);
+	}
 
 	/**
 	 * Inserts a row with the specified header at the given position in the table.
 	 */
-	void insertRow(int row, String header);
+	default void insertRow(final int row, final String header) {
+		insertRows(row, 1);
+		setRowHeader(row, header);
+	}
 
 	/**
 	 * Inserts a block of rows (with no headers) at the given position in the
 	 * table.
 	 */
-	void insertRows(int row, int count);
+	default void insertRows(final int row, final int count) {
+		Tables.checkRow(this, row, 0);
+		final int oldRowCount = getRowCount();
+		final int newRowCount = oldRowCount + count;
+
+		// expand rows list
+		setRowCount(newRowCount);
+
+		// copy data after the inserted range into the new position
+		// NB: This loop goes backwards to prevent the same row from being copied
+		// over and over again.
+		for (int oldR = oldRowCount - 1; oldR >= row; oldR--) {
+			final int newR = oldR + count;
+			for (int c = 0; c < getColumnCount(); c++) {
+				set(c, newR, get(c, oldR));
+			}
+		}
+
+		// copy row headers after the inserted range into the new position
+		// NB: This loop goes backwards for performance.
+		// It ensures that rowHeaders is resized at most once.
+		for (int oldR = oldRowCount - 1; oldR >= row; oldR--) {
+			final int newR = oldR + count;
+			setRowHeader(newR, getRowHeader(oldR));
+		}
+
+		// insert new blank row data
+		for (int r = 0; r < count; r++) {
+			for (int c = 0; c < getColumnCount(); c++) {
+				set(c, row + r, null);
+			}
+		}
+
+		// insert new blank row headers
+		for (int r = 0; r < count; r++) {
+			setRowHeader(row + r, null);
+		}
+	}
+
 
 	/**
 	 * Inserts a block of rows with the specified headers at the given position in
 	 * the table.
 	 */
-	void insertRows(int row, String... headers);
+	default void insertRows(final int row, final String... headers) {
+		// insert empty rows as a block
+		insertRows(row, headers.length);
+
+		// set headers for newly inserted rows
+		for (int r = 0; r < headers.length; r++) {
+			setRowHeader(row + r, headers[r]);
+		}
+	}
+
 
 	/** Removes the row at the given position from the table. */
-	void removeRow(int row);
+	default void removeRow(final int row) {
+		removeRows(row, 1);
+	}
 
 	/** Removes the first row with the given header from the table. */
-	void removeRow(String header);
+	default void removeRow(final String header) {
+		final int row = getColumnIndex(header);
+		if (row < 0) throw new IndexOutOfBoundsException("No such row: " + header);
+		removeRow(row);
+	}
 
 	/**
 	 * Removes a block of rows starting at the given position from the table.
@@ -191,19 +327,36 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	void removeRows(int row, int count);
 
 	/** Removes the first rows with the given headers from the table. */
-	void removeRows(String... headers);
+	default void removeRows(final String... headers) {
+		for (final String header : headers) {
+			removeRow(header);
+		}
+	}
 
 	/** Sets the number of columns and rows in the table. */
-	void setDimensions(int colCount, int rowCount);
+	default void setDimensions(final int colCount, final int rowCount) {
+		setColumnCount(colCount);
+		setRowCount(rowCount);
+	}
 
 	/** Gets the column header at the given column. */
-	String getColumnHeader(int col);
+	default String getColumnHeader(final int col) {
+		return get(col).getHeader();
+	}
 
 	/** Sets the column header at the given column. */
-	void setColumnHeader(int col, String header);
+	default void setColumnHeader(final int col, final String colHeader) {
+		get(col).setHeader(colHeader);
+	}
 
 	/** Gets the column index of the column with the given header. */
-	int getColumnIndex(String header);
+	default int getColumnIndex(final String colHeader) {
+		for (int c = 0; c < getColumnCount(); c++) {
+			final String h = getColumnHeader(c);
+			if (Objects.equals(h, colHeader)) return c;
+		}
+		return -1;
+	}
 
 	/** Gets the row header at the given row. */
 	String getRowHeader(int row);
@@ -212,19 +365,37 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	void setRowHeader(int row, String header);
 
 	/** Gets the row index of the row with the given header. */
-	int getRowIndex(String header);
+	default int getRowIndex(final String header) {
+		for (int r = 0; r < getRowCount(); r++) {
+			final String h = getRowHeader(r);
+			if (Objects.equals(h, header)) return r;
+		}
+		return -1;
+	}
 
 	/** Sets the table value at the given column and row. */
-	void set(int col, int row, T value);
+	default void set(final int col, final int row, final T value) {
+		Tables.checkCol(this, col, 1);
+		Tables.checkRow(this, row, 1);
+		Tables.assign((Column<?>) get(col), row, value);
+	}
 
 	/** Sets the table value at the given column and row. */
 	void set(String colHeader, int row, T value);
 
 	/** Gets the table value at the given column and row. */
-	T get(int col, int row);
+	default T get(final int col, final int row) {
+		Tables.checkCol(this, col, 1);
+		Tables.checkRow(this, row, 1);
+		return get(col).get(row);
+	}
 
 	/** Gets the table value at the given column and row. */
-	T get(String colHeader, int row);
+	default T get(final String colHeader, final int row) {
+		final int col = Tables.colIndex(this, colHeader);
+		Tables.checkRow(this, row, 1);
+		return get(col).get(row);
+	}
 
 	// -- List methods --
 
@@ -234,7 +405,9 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 
 	/** Gets whether the table is empty. */
 	@Override
-	boolean isEmpty();
+	default boolean isEmpty() {
+		return size() == 0;
+	}
 
 	/**
 	 * Gets whether the table contains the given column.
