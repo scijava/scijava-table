@@ -224,16 +224,14 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 
 	/** Appends a block of rows (with no headers) to the table. */
 	default void appendRows(final int count) {
-		for (int c = 0; c < count; c++) {
+		for (int c = 0; c < count; c++)
 			appendRow();
-		}
 	}
 
 	/** Appends a block of rows with the given headers to the table. */
 	default void appendRows(final String... headers) {
-		for (final String header : headers) {
+		for (final String header : headers)
 			appendRow(header);
-		}
 	}
 
 	/** Inserts a row (with no header) at the given position in the table. */
@@ -266,9 +264,8 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 		// over and over again.
 		for (int oldR = oldRowCount - 1; oldR >= row; oldR--) {
 			final int newR = oldR + count;
-			for (int c = 0; c < getColumnCount(); c++) {
+			for (int c = 0; c < getColumnCount(); c++)
 				set(c, newR, get(c, oldR));
-			}
 		}
 
 		// copy row headers after the inserted range into the new position
@@ -281,9 +278,8 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 
 		// insert new blank row data
 		for (int r = 0; r < count; r++) {
-			for (int c = 0; c < getColumnCount(); c++) {
+			for (int c = 0; c < getColumnCount(); c++)
 				set(c, row + r, null);
-			}
 		}
 
 		// insert new blank row headers
