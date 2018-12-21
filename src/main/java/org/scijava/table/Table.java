@@ -30,12 +30,15 @@
 
 package org.scijava.table;
 
+import java.lang.reflect.Array;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A table of values.
@@ -411,18 +414,27 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 *          tested.
 	 */
 	@Override
-	boolean contains(Object column);
+	default boolean contains(final Object column) {
+		return indexOf(column) >= 0;
+	}
 
 	/** Returns an iterator over the columns in the table in proper sequence. */
 	@Override
-	Iterator<C> iterator();
+	default Iterator<C> iterator() {
+		return listIterator();
+	}
 
 	/**
 	 * Returns an array containing all of the columns in the table in proper
 	 * sequence (from first to last column).
 	 */
 	@Override
-	Object[] toArray();
+	default Object[] toArray() {
+		final Object[] columns = new Object[getColumnCount()];
+		for (int c = 0; c < columns.length; c++)
+			columns[c] = get(c);
+		return columns;
+	}
 
 	/**
 	 * Returns an array containing all of the column in the table in proper
@@ -433,7 +445,15 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * list of columns.
 	 */
 	@Override
-	<A> A[] toArray(A[] a);
+	@SuppressWarnings("unchecked")
+	default <A> A[] toArray(final A[] a) {
+		final A[] columns = a.length >= getColumnCount() ? a : //
+			(A[]) Array.newInstance(a.getClass().getComponentType(),
+				getColumnCount());
+		for (int c = 0; c < getColumnCount(); c++)
+			columns[c] = (A) get(c);
+		return columns;
+	}
 
 	/**
 	 * Appends the specified column to the end of the table.
@@ -443,7 +463,10 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * </p>
 	 */
 	@Override
-	boolean add(C column);
+	default boolean add(final C column) {
+		add(getColumnCount(), column);
+		return true;
+	}
 
 	/**
 	 * Removes the first occurrence of the specified column from the table, if it
@@ -452,14 +475,24 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * @return <tt>true</tt> if the table contained the specified column
 	 */
 	@Override
-	boolean remove(Object column);
+	default boolean remove(final Object column) {
+		final int colIndex = indexOf(column);
+		if (colIndex < 0) return false;
+		remove(colIndex);
+		return true;
+	}
 
 	/**
 	 * Returns <tt>true</tt> if the table contains all of the columns of the
 	 * specified collection.
 	 */
 	@Override
-	boolean containsAll(Collection<?> c);
+	default boolean containsAll(final Collection<?> c) {
+		for (final Object column : c) {
+			if (!contains(column)) return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Appends all of the columns in the specified collection to the end of the
@@ -473,7 +506,12 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * @return <tt>true</tt> if the table changed as a result of the call
 	 */
 	@Override
-	boolean addAll(Collection<? extends C> c);
+	default boolean addAll(final Collection<? extends C> c) {
+		boolean changed = false;
+		for (final C column : c)
+			changed |= add(column);
+		return changed;
+	}
 
 	/**
 	 * Inserts all of the columns in the specified collection into this list at
@@ -486,7 +524,12 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * @return <tt>true</tt> if the table changed as a result of the call
 	 */
 	@Override
-	boolean addAll(int col, Collection<? extends C> c);
+	default boolean addAll(final int col, final Collection<? extends C> c) {
+		int index = col;
+		for (final C column : c)
+			add(index++, column);
+		return c.size() > 0;
+	}
 
 	/**
 	 * Removes from the table all of its columns that are contained in the
@@ -495,7 +538,12 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * @return <tt>true</tt> if the table changed as a result of the call
 	 */
 	@Override
-	boolean removeAll(Collection<?> c);
+	default boolean removeAll(final Collection<?> c) {
+		boolean changed = false;
+		for (final Object column : c)
+			changed |= remove(column);
+		return changed;
+	}
 
 	/**
 	 * Retains only the columns in the table that are contained in the specified
@@ -505,7 +553,12 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * @return <tt>true</tt> if the table changed as a result of the call
 	 */
 	@Override
-	boolean retainAll(Collection<?> c);
+	default boolean retainAll(final Collection<?> c) {
+		final List<?> absent = stream() //
+			.filter(column -> !c.contains(column)) //
+			.collect(Collectors.toList());
+		return removeAll(absent);
+	}
 
 	/**
 	 * Removes all data (including row and column headers) from the table. The
@@ -559,27 +612,93 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * table, or -1 if the table does not contain the column.
 	 */
 	@Override
-	int indexOf(Object column);
+	default int indexOf(final Object column) {
+		for (int c = 0; c < size(); c++)
+			if (Objects.equals(get(c), column)) return c;
+		return -1;
+	}
 
 	/**
 	 * Returns the index of the last occurrence of the specified column in the
 	 * table, or -1 if the table does not contain the column.
 	 */
 	@Override
-	int lastIndexOf(Object column);
+	default int lastIndexOf(final Object column) {
+		for (int c = size() - 1; c >= 0; c--)
+			if (Objects.equals(get(c), column)) return c;
+		return -1;
+	}
 
 	/**
 	 * Returns a list iterator over the columns in the table (in proper sequence).
 	 */
 	@Override
-	ListIterator<C> listIterator();
+	default ListIterator<C> listIterator() {
+		return listIterator(0);
+	}
 
 	/**
 	 * Returns a list iterator of the columns in the table (in proper sequence),
 	 * starting at the specified position in the table.
 	 */
 	@Override
-	ListIterator<C> listIterator(int col);
+	default ListIterator<C> listIterator(final int col) {
+
+		return new ListIterator<C>() {
+
+			int last = -1;
+			int c = col;
+
+			@Override
+			public boolean hasNext() {
+				return c < getColumnCount();
+			}
+
+			@Override
+			public C next() {
+				return get(last = c++);
+			}
+
+			@Override
+			public boolean hasPrevious() {
+				return c > 0;
+			}
+
+			@Override
+			public C previous() {
+				return get(last = --c);
+			}
+
+			@Override
+			public int nextIndex() {
+				return c;
+			}
+
+			@Override
+			public int previousIndex() {
+				return c - 1;
+			}
+
+			@Override
+			public void remove() {
+				if (last < 0) throw new IllegalStateException();
+				Table.this.remove(last);
+				last = -1;
+			}
+
+			@Override
+			public void set(final C e) {
+				if (last < 0) throw new IllegalStateException();
+				Table.this.set(last, e);
+			}
+
+			@Override
+			public void add(final C e) {
+				Table.this.add(c++, e);
+				last = -1;
+			}
+		};
+	}
 
 	/**
 	 * Returns a view of the portion of the table between the specified
@@ -588,6 +707,18 @@ public interface Table<C extends Column<? extends T>, T> extends List<C> {
 	 * returned list are reflected in the table, and vice-versa.
 	 */
 	@Override
-	List<C> subList(int fromCol, int toCol);
+	default List<C> subList(final int fromCol, final int toCol) {
+		return new AbstractList<C>() {
 
+			@Override
+			public C get(final int index) {
+				return Table.this.get(index + fromCol);
+			}
+
+			@Override
+			public int size() {
+				return toCol - fromCol;
+			}
+		};
+	}
 }
