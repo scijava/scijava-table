@@ -97,7 +97,7 @@ public final class Tables {
 							int c = 0;
 							for (final Object key : data.get(0).keySet()) {
 								if (col == c++) {
-									colHeader = key == null ? "<null>" : key.toString();
+									colHeader = key == null ? null : key.toString();
 									break;
 								}
 							}
