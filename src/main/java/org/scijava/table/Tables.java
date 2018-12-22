@@ -57,10 +57,11 @@ public final class Tables {
 	 * @param data The data to wrap. Each list element is a row; maps go from
 	 *          column name to data.
 	 * @param rowHeaders List of row header labels. Pass null for no row headers.
+	 * @param <T> The type of data in each cell of the table.
 	 * @return A {@link Table} object wrapping the data structure.
 	 */
 	public static <T> Table<Column<T>, T> wrap(
-		final List<? extends Map<?, ? extends T>> data, final List<String> rowHeaders)
+		final List<? extends Map<?, T>> data, final List<String> rowHeaders)
 	{
 		if (data.isEmpty()) throw new IllegalArgumentException("Cannot wrap an empty list");
 
