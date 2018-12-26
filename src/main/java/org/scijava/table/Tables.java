@@ -82,14 +82,8 @@ public final class Tables {
 			public Column<T> get(final int col) {
 				if (col != 0) //
 					throw new IllegalArgumentException("Column out of range: " + col);
-				class ColumnAccessor implements ReadOnlyColumn<T> {
 
-					private final Object tableData = data;
-
-					@Override
-					public String getHeader() {
-						return colHeader;
-					}
+				return new ColumnAccessor<T>(data, colHeader) {
 
 					@Override
 					public int size() {
@@ -97,29 +91,10 @@ public final class Tables {
 					}
 
 					@Override
-					public Class<T> getType() {
-						// TODO: Consider whether this is terrible.
-						throw new UnsupportedOperationException();
-					}
-
-					@Override
 					public T get(final int index) {
 						return data.get(index);
 					}
-
-					@Override
-					public int hashCode() {
-						return getHeader().hashCode();
-					}
-
-					@Override
-					public boolean equals(final Object obj) {
-						if (!(obj instanceof ColumnAccessor)) return false;
-						final ColumnAccessor other = ((ColumnAccessor) obj);
-						return data == other.tableData;
-					}
-				}
-				return new ColumnAccessor();
+				};
 			}
 		};
 	}
@@ -163,9 +138,8 @@ public final class Tables {
 
 			@Override
 			public Column<T> get(final int col) {
-				class ColumnAccessor implements ReadOnlyColumn<T> {
+				return new ColumnAccessor<T>(data, null) {
 
-					private final Object tableData = data;
 					private boolean initialized;
 					private String colHeader;
 
@@ -190,30 +164,10 @@ public final class Tables {
 					}
 
 					@Override
-					public Class<T> getType() {
-						// TODO: Consider whether this is terrible.
-						throw new UnsupportedOperationException();
-					}
-
-					@Override
 					public T get(final int index) {
 						return data.get(index).get(getHeader());
 					}
-
-					@Override
-					public int hashCode() {
-						return getHeader().hashCode();
-					}
-
-					@Override
-					public boolean equals(final Object obj) {
-						if (!(obj instanceof ColumnAccessor)) return false;
-						final ColumnAccessor other = ((ColumnAccessor) obj);
-						if (data != other.tableData) return false;
-						return Objects.equals(getHeader(), other.getHeader());
-					}
-				}
-				return new ColumnAccessor();
+				};
 			}
 		};
 	}
@@ -427,6 +381,41 @@ public final class Tables {
 		@Override
 		default void setSize(int size) {
 			throw readOnlyException();
+		}
+	}
+
+	private static abstract class ColumnAccessor<T> implements ReadOnlyColumn<T> {
+
+		private final Object data;
+		private final String colHeader;
+
+		private ColumnAccessor(final Object data, final String colHeader) {
+			this.data = data;
+			this.colHeader = colHeader;
+		}
+
+		@Override
+		public String getHeader() {
+			return colHeader;
+		}
+
+		@Override
+		public Class<T> getType() {
+			// TODO: Consider whether this is terrible.
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int hashCode() {
+			return getHeader().hashCode();
+		}
+
+		@Override
+		public boolean equals(final Object obj) {
+			if (!(obj instanceof ColumnAccessor)) return false;
+			final ColumnAccessor<?> other = ((ColumnAccessor<?>) obj);
+			if (data != other.data) return false;
+			return Objects.equals(getHeader(), other.getHeader());
 		}
 	}
 }
