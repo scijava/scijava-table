@@ -56,7 +56,7 @@ public class TablesTest {
 
 		final List<String> rowHeaders = Arrays.asList("A", "B", "C", "D");
 
-		final Table<Column<Object>, Object> table = Tables.wrap(towns, rowHeaders);
+		final Table<?, ?> table = Tables.wrap(towns, rowHeaders);
 
 		// check table dimensions
 		assertEquals(2, table.size());
@@ -79,7 +79,7 @@ public class TablesTest {
 
 		// check first column
 		assertEquals("Town", table.getColumnHeader(0));
-		final Column<Object> townColumn = table.get("Town");
+		final Column<?> townColumn = table.get("Town");
 		assertEquals(4, townColumn.size());
 		assertEquals("Shanghai", townColumn.get(0));
 		assertEquals("Karachi", townColumn.get(1));
@@ -89,7 +89,7 @@ public class TablesTest {
 
 		// check second column
 		assertEquals("Population", table.getColumnHeader(1));
-		final Column<Object> popColumn = table.get("Population");
+		final Column<?> popColumn = table.get("Population");
 		assertEquals(4, popColumn.size());
 		assertEquals(24_256_800, popColumn.get(0));
 		assertEquals(23_500_000, popColumn.get(1));
