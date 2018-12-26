@@ -47,6 +47,41 @@ import org.junit.Test;
 public class TablesTest {
 
 	@Test
+	public void testWrapMap() {
+		final Map<?, ?> info = map( //
+			"Name", "Barack Obama", //
+			"Birth date", "August 4, 1961", //
+			"Birth place", "Honolulu, Hawaii" //
+		);
+		final String colHeader = "Stat";
+		final Table<?, ?> table = Tables.wrap(info, colHeader);
+
+		// check table dimensions
+		assertEquals(1, table.size());
+		assertEquals(1, table.getColumnCount());
+		assertEquals(info.size(), table.getRowCount());
+
+		// check row headers
+		assertEquals("Name", table.getRowHeader(0));
+		assertEquals("Birth date", table.getRowHeader(1));
+		assertEquals("Birth place", table.getRowHeader(2));
+
+		// check direct data access
+		assertEquals("Barack Obama", table.get(0, 0));
+		assertEquals("August 4, 1961", table.get(0, 1));
+		assertEquals("Honolulu, Hawaii", table.get(0, 2));
+
+		// check first column
+		assertEquals("Stat", table.getColumnHeader(0));
+		final Column<?> statColumn = table.get("Stat");
+		assertEquals(3, statColumn.size());
+		assertEquals("Barack Obama", statColumn.get(0));
+		assertEquals("August 4, 1961", statColumn.get(1));
+		assertEquals("Honolulu, Hawaii", statColumn.get(2));
+		assertEquals(statColumn, table.get(0));
+	}
+
+	@Test
 	public void testWrapList() {
 		final List<?> names = //
 			Arrays.asList("Phoebe", "Jezebel", "Daphne", "Fiona");

@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods for constructing tables.
@@ -44,6 +45,61 @@ public final class Tables {
 
 	private Tables() {
 		// NB: Prevent instantiation of utility class.
+	}
+
+	/**
+	 * Creates a single-column table wrapping a map. Each entry is one row of the
+	 * table.
+	 * 
+	 * @param data The data to wrap. Each map entry is a row.
+	 * @param colHeader Header to use for the table's sole column. Pass null for
+	 *          no column header.
+	 * @param <T> The type of data in each cell of the table.
+	 * @return A {@link Table} object wrapping the data structure.
+	 */
+	public static <T> Table<Column<T>, T> wrap(final Map<?, T> data,
+		final String colHeader)
+	{
+		final List<String> rowHeaders = data.keySet().stream() //
+			.map(k -> k == null ? null : k.toString()) //
+			.collect(Collectors.toList());
+
+		return new ReadOnlyTable<T>() {
+
+			@Override
+			public int getRowCount() {
+				return data.size();
+			}
+
+			@Override
+			public String getRowHeader(final int row) {
+				return rowHeaders.get(row);
+			}
+
+			@Override
+			public int size() {
+				return 1;
+			}
+
+			@Override
+			public Column<T> get(final int col) {
+				if (col != 0) //
+					throw new IllegalArgumentException("Column out of range: " + col);
+
+				return new ColumnAccessor<T>(data, colHeader) {
+
+					@Override
+					public int size() {
+						return data.size();
+					}
+
+					@Override
+					public T get(final int index) {
+						return data.get(rowHeaders.get(index));
+					}
+				};
+			}
+		};
 	}
 
 	/**
