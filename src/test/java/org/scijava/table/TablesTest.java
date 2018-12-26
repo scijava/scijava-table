@@ -47,7 +47,37 @@ import org.junit.Test;
 public class TablesTest {
 
 	@Test
-	public void testWrap() {
+	public void testWrapList() {
+		final List<?> names = //
+			Arrays.asList("Phoebe", "Jezebel", "Daphne", "Fiona");
+		final String colHeader = "Name";
+		final List<String> rowHeaders = Arrays.asList("A", "B", "C", "D");
+		final Table<?, ?> table = Tables.wrap(names, colHeader, rowHeaders);
+
+		// check table dimensions
+		assertEquals(1, table.size());
+		assertEquals(1, table.getColumnCount());
+		assertEquals(4, table.getRowCount());
+
+		// check row headers
+		for (int r = 0; r < rowHeaders.size(); r++)
+			assertEquals(rowHeaders.get(r), table.getRowHeader(r));
+
+		// check direct data access
+		for (int i = 0; i < names.size(); i++)
+			assertEquals(names.get(i), table.get(0, i));
+
+		// check first column
+		assertEquals("Name", table.getColumnHeader(0));
+		final Column<?> nameColumn = table.get("Name");
+		assertEquals(4, nameColumn.size());
+		for (int i = 0; i < names.size(); i++)
+			assertEquals(names.get(i), nameColumn.get(i));
+		assertEquals(nameColumn, table.get(0));
+	}
+
+	@Test
+	public void testWrapMaps() {
 		final List<Map<Object, Object>> towns = Arrays.asList( //
 			map("Town", "Shanghai", "Population", 24_256_800), //
 			map("Town", "Karachi", "Population", 23_500_000), //

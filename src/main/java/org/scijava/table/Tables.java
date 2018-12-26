@@ -47,6 +47,84 @@ public final class Tables {
 	}
 
 	/**
+	 * Creates a single-column table wrapping a list. Each element is one row of
+	 * the table.
+	 * 
+	 * @param data The data to wrap. Each list element is a row.
+	 * @param colHeader Header to use for the table's sole column. Pass null for
+	 *          no column header.
+	 * @param rowHeaders List of row header labels. Pass null for no row headers.
+	 * @param <T> The type of data in each cell of the table.
+	 * @return A {@link Table} object wrapping the data structure.
+	 */
+	public static <T> Table<Column<T>, T> wrap(final List<T> data,
+		final String colHeader, final List<String> rowHeaders)
+	{
+		return new ReadOnlyTable<T>() {
+
+			@Override
+			public int getRowCount() {
+				return data.size();
+			}
+
+			@Override
+			public String getRowHeader(final int row) {
+				if (rowHeaders == null || rowHeaders.size() < row) return null;
+				return rowHeaders.get(row);
+			}
+
+			@Override
+			public int size() {
+				return 1;
+			}
+
+			@Override
+			public Column<T> get(final int col) {
+				if (col != 0) //
+					throw new IllegalArgumentException("Column out of range: " + col);
+				class ColumnAccessor implements ReadOnlyColumn<T> {
+
+					private final Object tableData = data;
+
+					@Override
+					public String getHeader() {
+						return colHeader;
+					}
+
+					@Override
+					public int size() {
+						return data.size();
+					}
+
+					@Override
+					public Class<T> getType() {
+						// TODO: Consider whether this is terrible.
+						throw new UnsupportedOperationException();
+					}
+
+					@Override
+					public T get(final int index) {
+						return data.get(index);
+					}
+
+					@Override
+					public int hashCode() {
+						return getHeader().hashCode();
+					}
+
+					@Override
+					public boolean equals(final Object obj) {
+						if (!(obj instanceof ColumnAccessor)) return false;
+						final ColumnAccessor other = ((ColumnAccessor) obj);
+						return data == other.tableData;
+					}
+				}
+				return new ColumnAccessor();
+			}
+		};
+	}
+
+	/**
 	 * Creates a table wrapping a list of maps. Each map is one row of the table.
 	 * Map keys are column names; map values are cell data.
 	 * <p>
