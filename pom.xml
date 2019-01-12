@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>scijava-plugins-io-table</artifactId>
-	<version>0.2.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 
 	<name>SciJava IO Plugin: Tables</name>
 	<description>I/O plugins for SciJava table objects.</description>
