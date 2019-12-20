@@ -30,11 +30,8 @@
 package org.scijava.table;
 
 import org.scijava.io.AbstractIOPlugin;
-import org.scijava.io.IOPlugin;
-import org.scijava.plugin.Plugin;
 
 @SuppressWarnings("rawtypes")
-@Plugin(type = IOPlugin.class)
 public class FakeTableIOPlugin extends AbstractIOPlugin<Table> {
 	
 	@Override

@@ -100,6 +100,8 @@
 		<license.copyrightOwners>Board of Regents of the University of
 Wisconsin-Madison, and Friedrich Miescher Institute for Biomedical Research.</license.copyrightOwners>
 
+		<scijava-common.version>2.81.0</scijava-common.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 	</properties>

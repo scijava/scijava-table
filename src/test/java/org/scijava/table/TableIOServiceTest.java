@@ -39,6 +39,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
+import org.scijava.io.IOPlugin;
+import org.scijava.plugin.PluginInfo;
+import org.scijava.plugin.PluginService;
 import org.scijava.table.io.DefaultTableIOService;
 import org.scijava.table.io.TableIOService;
 
@@ -46,9 +49,13 @@ public class TableIOServiceTest {
 
 	private Context context;
 
+	@SuppressWarnings("rawtypes")
 	@Before
 	public void setUp() {
 		context = new Context();
+		PluginInfo<IOPlugin> info = PluginInfo.create(FakeTableIOPlugin.class,
+			IOPlugin.class);
+		context.service(PluginService.class).addPlugin(info);
 	}
 
 	@After
