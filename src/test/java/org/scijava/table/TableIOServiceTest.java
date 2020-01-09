@@ -39,6 +39,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
+import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.IOPlugin;
 import org.scijava.plugin.PluginInfo;
 import org.scijava.plugin.PluginService;
@@ -80,4 +81,29 @@ public class TableIOServiceTest {
 			fail(exc.toString());
 		}
 	}
+
+	@SuppressWarnings("rawtypes")
+	public static class FakeTableIOPlugin extends AbstractIOPlugin<Table> {
+		
+		@Override
+		public Class<Table> getDataType() {
+			return Table.class;
+		}
+
+		@Override
+		public boolean supportsOpen(String loc) {
+			return loc.endsWith("csv");
+		}
+
+		@Override
+		public boolean supportsSave(String loc) {
+			return loc.endsWith("csv");
+		}
+		
+		@Override
+		public Table open(String loc) {
+			return new DefaultGenericTable();
+		}
+	}
+
 }
