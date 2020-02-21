@@ -2,7 +2,7 @@
  * #%L
  * Table structures for SciJava.
  * %%
- * Copyright (C) 2012 - 2019 Board of Regents of the University of
+ * Copyright (C) 2012 - 2020 Board of Regents of the University of
  * Wisconsin-Madison, and Friedrich Miescher Institute for Biomedical Research.
  * %%
  * Redistribution and use in source and binary forms, with or without
