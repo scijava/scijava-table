@@ -2,7 +2,7 @@
  * #%L
  * I/O plugins for SciJava table objects.
  * %%
- * Copyright (C) 2017 - 2018 Board of Regents of the University of
+ * Copyright (C) 2017 - 2020 Board of Regents of the University of
  * Wisconsin-Madison and University of Konstanz.
  * %%
  * Redistribution and use in source and binary forms, with or without
