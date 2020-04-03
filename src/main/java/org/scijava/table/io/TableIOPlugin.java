@@ -1,4 +1,4 @@
-/*-
+/*
  * #%L
  * Table structures for SciJava.
  * %%
@@ -7,13 +7,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,20 +30,42 @@
 
 package org.scijava.table.io;
 
-import java.io.IOException;
-
-import org.scijava.service.SciJavaService;
+import org.scijava.io.AbstractIOPlugin;
 import org.scijava.table.Table;
 
-public interface TableIOService extends SciJavaService {
+import java.io.IOException;
 
-	boolean canOpen(String source);
+/**
+ * Abstract plugin class for saving and loading tables
+ *
+ * @author Deborah Schmidt
+ */
+public class TableIOPlugin extends AbstractIOPlugin<Table> {
 
-	boolean canSave(Table<?, ?> table, String destination);
+	@Override
+	public Table<?, ?> open(String source) throws IOException {
+		return open(source, new TableIOOptions());
+	}
 
-	Table<?, ?> open(String source) throws IOException;
-	Table<?, ?> open(String source, TableIOOptions options) throws IOException;
+	/** Opens data from the given source. */
+	@SuppressWarnings("unused")
+	public Table<?, ?> open(final String source, final TableIOOptions options) throws IOException {
+		throw new UnsupportedOperationException();
+	}
 
-	void save(Table<?, ?> table, String destination) throws IOException;
-	void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException;
+	@Override
+	public void save(Table data, String destination) throws IOException {
+		save(data, destination, new TableIOOptions());
+	}
+
+	/** Saves the given data to the specified destination. */
+	@SuppressWarnings("unused")
+	public void save(final Table<?, ?> data, final String destination, final TableIOOptions options) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Class<Table> getDataType() {
+		return Table.class;
+	}
 }

@@ -1,4 +1,4 @@
-/*-
+/*
  * #%L
  * Table structures for SciJava.
  * %%
@@ -7,13 +7,13 @@
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,20 +30,36 @@
 
 package org.scijava.table.io;
 
-import java.io.IOException;
+import org.scijava.optional.AbstractOptions;
 
-import org.scijava.service.SciJavaService;
-import org.scijava.table.Table;
+import java.util.function.Function;
 
-public interface TableIOService extends SciJavaService {
+/**
+ * @author Deborah Schmidt
+ */
+public class ColumnTableIOOptions extends AbstractOptions<ColumnTableIOOptions> {
 
-	boolean canOpen(String source);
+	public final ColumnTableIOOptions.Values values = new ColumnTableIOOptions.Values();
+	private static final String parserId = "parser";
+	private static final String formatterId = "formatter";
 
-	boolean canSave(Table<?, ?> table, String destination);
+	ColumnTableIOOptions formatter(Function<Object, String> formatter) {
+		return setValue(formatterId, formatter);
+	}
 
-	Table<?, ?> open(String source) throws IOException;
-	Table<?, ?> open(String source, TableIOOptions options) throws IOException;
+	ColumnTableIOOptions parser(Function<String, Object> parser) {
+		return setValue(parserId, parser);
+	}
 
-	void save(Table<?, ?> table, String destination) throws IOException;
-	void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException;
+	public class Values extends AbstractValues {
+
+		public Function<Object, String> formatter() {
+			return getValueOrDefault(formatterId, String::valueOf);
+		}
+
+		public Function<String, Object> parser() {
+			return getValueOrDefault(parserId, String::valueOf);
+		}
+	}
+
 }
