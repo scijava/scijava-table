@@ -28,7 +28,7 @@
  * #L%
  */
 
-package org.scijava.table;
+package org.scijava.table.io;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,9 +37,8 @@ import org.scijava.Context;
 import org.scijava.io.IOPlugin;
 import org.scijava.plugin.PluginInfo;
 import org.scijava.plugin.PluginService;
-import org.scijava.table.io.TableIOOptions;
-import org.scijava.table.io.TableIOPlugin;
-import org.scijava.table.io.TableIOService;
+import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.Table;
 
 import java.io.IOException;
 
