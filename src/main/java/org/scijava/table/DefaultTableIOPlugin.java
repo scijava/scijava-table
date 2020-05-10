@@ -35,14 +35,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import org.scijava.Priority;
-import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.IOPlugin;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
@@ -50,6 +50,9 @@ import org.scijava.io.location.Location;
 import org.scijava.io.location.LocationService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.table.io.ColumnTableIOOptions;
+import org.scijava.table.io.TableIOOptions;
+import org.scijava.table.io.TableIOPlugin;
 import org.scijava.util.FileUtils;
 
 /**
@@ -59,7 +62,7 @@ import org.scijava.util.FileUtils;
  */
 @SuppressWarnings("rawtypes")
 @Plugin(type = IOPlugin.class, priority = Priority.LOW)
-public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
+public class DefaultTableIOPlugin extends TableIOPlugin {
 
 	@Parameter
 	private LocationService locationService;
@@ -67,64 +70,11 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 	@Parameter
 	private DataHandleService dataHandleService;
 
-	/** Reads the first row of the input file as column headers. */
-	@Parameter(required = false)
-	private boolean readColHeaders = true;
-
-	/** Writes column headers to file if there exists at least one. */
-	@Parameter(required = false)
-	private boolean writeColHeaders = true;
-
-	/** Reads the first column of the input file as row headers. */
-	@Parameter(required = false)
-	private boolean readRowHeaders = false;
-
-	/** Writes row headers to file if there exists at least one. */
-	@Parameter(required = false)
-	private boolean writeRowHeaders = true;
-
-	/** Regex pattern that separates cells in each row of the table. */
-	@Parameter(required = false)
-	private char separator = ',';
-
-	/** End of line when writing to file. */
-	@Parameter(required = false)
-	private String eol = System.lineSeparator();
-
-	/**
-	 * Quote character used for escaping separator and empty strings. Use two
-	 * consecutive quotes to escape one.
-	 */
-	@Parameter(required = false)
-	private char quote = '"';
-
-	/**
-	 * Text that appears at the top left corner when both column and row headers
-	 * present.
-	 */
-	@Parameter(required = false)
-	private String cornerText = "\\";
-
-	/**
-	 * Lambda function that converts the string of a cell to an appropriate value.
-	 */
-	@Parameter(required = false)
-	private Function<String, Object> parser = s -> s;
-
-	/** Lambda function that convert the cell content to a string. */
-	@Parameter(required = false)
-	private Function<Object, String> formatter = o -> o.toString();
-
 	// FIXME: The "txt" extension is extremely general and will conflict with
 	// other plugins. Consider another way to check supportsOpen/Close.
 	private static final Set<String> SUPPORTED_EXTENSIONS = Collections
 		.unmodifiableSet(new HashSet<>(Arrays.asList("csv", "txt", "prn", "dif",
 			"rtf")));
-
-	@Override
-	public Class<Table> getDataType() {
-		return Table.class;
-	}
 
 	@Override
 	public boolean supportsOpen(final String source) {
@@ -140,21 +90,21 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 	/**
 	 * Process a given line into a list of tokens.
 	 */
-	private ArrayList<String> processRow(final String line) throws IOException {
+	private ArrayList<String> processRow(final String line, char separator, char quote) throws IOException {
 		final ArrayList<String> row = new ArrayList<>();
 		final StringBuilder sb = new StringBuilder();
 		int idx = 0;
 		int start = idx;
 		while (idx < line.length()) {
 			if (line.charAt(idx) == quote) {
-				sb.append(line.substring(start, idx));
+				sb.append(line, start, idx);
 				boolean quoted = true;
 				idx++;
 				start = idx;
 				// find quoted string
 				while (idx < line.length()) {
 					if (line.charAt(idx) == quote) {
-						sb.append(line.substring(start, idx));
+						sb.append(line, start, idx);
 						if (idx + 1 < line.length() && line.charAt(idx + 1) == quote) {
 							sb.append(quote);
 							idx += 2;
@@ -177,7 +127,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 				}
 			}
 			else if (line.charAt(idx) == separator) {
-				sb.append(line.substring(start, idx));
+				sb.append(line, start, idx);
 				row.add(sb.toString());
 				sb.setLength(0);
 				idx++;
@@ -187,13 +137,18 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 				idx++;
 			}
 		}
-		sb.append(line.substring(start, idx));
+		sb.append(line, start, idx);
 		row.add(sb.toString());
 		return row;
 	}
 
 	@Override
-	public GenericTable open(final String source) throws IOException {
+	public GenericTable open(final String source, TableIOOptions options) throws IOException {
+		return open(source, options.values);
+	}
+
+	private GenericTable open(final String source, TableIOOptions.Values options) throws IOException {
+
 		final Location sourceLocation;
 		try {
 			sourceLocation = locationService.resolve(source);
@@ -216,13 +171,18 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 
 			final String text = new String(buffer);
 
+			final char separator = options.columnDelimiter();
+			final char quote = options.quote();
+			boolean readRowHeaders = options.readRowHeaders();
+			boolean readColHeaders = options.readColumnHeaders();
 
 			// split by any line delimiter
 			final String[] lines = text.split("\\R");
 			if (lines.length == 0) return table;
 			// process first line to get number of cols
+			Map<Integer, Function<String, Object>> columnParsers = new HashMap<>();
 			{
-				final ArrayList<String> tokens = processRow(lines[0]);
+				final ArrayList<String> tokens = processRow(lines[0], separator, quote);
 				if (readColHeaders) {
 					final List<String> colHeaders;
 					if (readRowHeaders) colHeaders = tokens.subList(1, tokens.size());
@@ -243,13 +203,15 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 						table.appendRow();
 					}
 					for (int i = 0; i < cols.size(); i++) {
+						Function<String, Object> parser = getParser(cols.get(i), i, options);
+						columnParsers.put(i, parser);
 						table.set(i, 0, parser.apply(cols.get(i)));
 					}
 				}
 			}
 			for (int lineNum = 1; lineNum < lines.length; lineNum++) {
 				final String line = lines[lineNum];
-				final ArrayList<String> tokens = processRow(line);
+				final ArrayList<String> tokens = processRow(line, separator, quote);
 				final List<String> cols;
 				if (readRowHeaders) {
 					cols = tokens.subList(1, tokens.size());
@@ -264,17 +226,70 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 						" is not the same length as the first line.");
 				}
 				for (int i = 0; i < cols.size(); i++) {
-					table.set(i, lineNum - 1, parser.apply(cols.get(i)));
+					if(lineNum == 1 && readColHeaders) {
+						columnParsers.put(i, getParser(cols.get(i), i, options));
+					}
+					table.set(i, lineNum - 1, columnParsers.get(i).apply(cols.get(i)));
 				}
 			}
 		}
 		return table;
 	}
 
+	private static Function<String, Object> getParser(String content, int column, TableIOOptions.Values options) {
+		ColumnTableIOOptions.Values colOptions = options.column(column);
+		if(colOptions != null) return colOptions.parser();
+		if(options.guessParser()) return guessParser(content);
+		return options.parser();
+	}
+
+	static Function<String, Object> guessParser(String content) {
+		try {
+			Integer.valueOf(content);
+			return Integer::valueOf;
+		} catch(NumberFormatException ignored) {}
+		try {
+			Long.valueOf(content);
+			return Long::valueOf;
+		} catch(NumberFormatException ignored) {}
+		try {
+			Double.valueOf(content);
+			return Double::valueOf;
+		} catch(NumberFormatException ignored) {}
+		try {
+			Float.valueOf(content);
+			return Float::valueOf;
+		} catch(NumberFormatException ignored) {}
+		if(content.equalsIgnoreCase("true")||content.equalsIgnoreCase("false")) {
+			return Boolean::valueOf;
+		}
+		return String::valueOf;
+	}
+
 	@Override
 	public void save(final Table table, final String destination)
-		throws IOException
-	{
+			throws IOException {
+		TableIOOptions options = new TableIOOptions();
+		// DISCUSS if we guess at his point if column or row headers should be written, the plugin will behave differently
+		// if you call save(table, destination) vs. save(table, destination, new TableIOOptions())
+		// .. and this seems just wrong.
+//		options.writeColHeaders(table.getColumnCount() > 0 && //
+//				IntStream.range(0, table.getColumnCount()).allMatch(col -> table
+//						.getColumnHeader(col) != null));
+//		options.writeRowHeaders(table.getRowCount() > 0 && //
+//				IntStream.range(0, table.getRowCount()).allMatch(row -> table
+//						.getRowHeader(row) != null));
+		save(table, destination, options.values);
+	}
+
+	@Override
+	public void save(final Table table, final String destination, final TableIOOptions options)
+		throws IOException {
+		save(table, destination, options.values);
+	}
+
+	private void save(final Table table, final String destination, final TableIOOptions.Values options)
+			throws IOException {
 		final Location dstLocation;
 		try {
 			dstLocation = locationService.resolve(destination);
@@ -286,32 +301,29 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 		try (final DataHandle<Location> handle = //
 			dataHandleService.create(dstLocation))
 		{
-			final boolean writeRH = this.writeRowHeaders && //
-				table.getRowCount() > 0 && //
-				IntStream.range(0, table.getRowCount()).allMatch(row -> table
-					.getRowHeader(row) != null);
-			final boolean writeCH = this.writeColHeaders && //
-				table.getColumnCount() > 0 && //
-				IntStream.range(0, table.getColumnCount()).allMatch(col -> table
-					.getColumnHeader(col) != null);
+			final boolean writeRH = options.writeRowHeaders();
+			final boolean writeCH = options.writeColumnHeaders();
+			final char separator = options.columnDelimiter();
+			final String eol = options.rowDelimiter();
+			final char quote = options.quote();
 
 				final StringBuilder sb = new StringBuilder();
 				// write column headers
 				if (writeCH) {
 					if (writeRH) {
-						sb.append(tryQuote(cornerText));
+						sb.append(tryQuote(options.cornerText(), separator, quote));
 						if (table.getColumnCount() > 0) {
 							sb.append(separator);
-							sb.append(tryQuote(table.getColumnHeader(0)));
+							sb.append(tryQuote(table.getColumnHeader(0), separator, quote));
 						}
 					}
 					// avoid adding extra separator when there is 0 column
 					else if (table.getColumnCount() > 0) {
-						sb.append(tryQuote(table.getColumnHeader(0)));
+						sb.append(tryQuote(table.getColumnHeader(0), separator, quote));
 					}
 					for (int col = 1; col < table.getColumnCount(); col++) {
 						sb.append(separator);
-						sb.append(tryQuote(table.getColumnHeader(col)));
+						sb.append(tryQuote(table.getColumnHeader(col), separator, quote));
 					}
 					sb.append(eol);
 					handle.writeBytes(sb.toString());
@@ -319,20 +331,22 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 				}
 				// write each row
 				for (int row = 0; row < table.getRowCount(); row++) {
+					Function<Object, String> formatter = getFormatter(options, 0);
 					if (writeRH) {
-						sb.append(tryQuote(table.getRowHeader(row)));
+						sb.append(tryQuote(table.getRowHeader(row), separator, quote));
 						if (table.getColumnCount() > 0) {
 							sb.append(separator);
-							sb.append(tryQuote(formatter.apply(table.get(0, row))));
+							sb.append(tryQuote(formatter.apply(table.get(0, row)), separator, quote));
 						}
 					}
 					// avoid adding extra separator when there is 0 column
 					else if (table.getColumnCount() > 0) {
-						sb.append(tryQuote(formatter.apply(table.get(0, row))));
+						sb.append(tryQuote(formatter.apply(table.get(0, row)), separator, quote));
 					}
 					for (int col = 1; col < table.getColumnCount(); col++) {
+						formatter = getFormatter(options, col);
 						sb.append(separator);
-						sb.append(tryQuote(formatter.apply(table.get(col, row))));
+						sb.append(tryQuote(formatter.apply(table.get(col, row)), separator, quote));
 					}
 					sb.append(eol);
 					handle.writeBytes(sb.toString());
@@ -340,6 +354,12 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 				}
 		}
 
+	}
+
+	private Function<Object, String> getFormatter(TableIOOptions.Values options, int i) {
+		ColumnTableIOOptions.Values columnOptions = options.column(i);
+		if(columnOptions != null) return columnOptions.formatter();
+		return options.formatter();
 	}
 
 	/**
@@ -351,7 +371,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> {
 	 * @param str string to quote
 	 * @return string, possibly quoted
 	 */
-	private String tryQuote(final String str) {
+	private String tryQuote(final String str, char separator, char quote) {
 		if (str == null || str.length() == 0) return "" + quote + quote;
 		if (str.indexOf(quote) != -1) return quote + str.replace("" + quote, "" +
 			quote + quote) + quote;
