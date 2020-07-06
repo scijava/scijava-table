@@ -55,8 +55,8 @@ public class ExportTableCommand extends ContextCommand {
 	@Parameter(required = false, label = "Write row headers")
 	private boolean writeRowHeaders = true;
 
-	@Parameter(required = false, label = "Cell separator")
-	private char separator = ',';
+	@Parameter(required = false, label = "Column delimiter")
+	private char columnDelimiter = ',';
 
 	@Parameter
 	private LogService log;
@@ -80,7 +80,7 @@ public class ExportTableCommand extends ContextCommand {
 			TableIOOptions options = new TableIOOptions()
 					.writeColumnHeaders(writeColHeaders)
 					.writeRowHeaders(writeRowHeaders)
-					.columnDelimiter(separator);
+					.columnDelimiter(columnDelimiter);
 			tableIO.save(tableDisplay.get(0), outputFile.getAbsolutePath(), options);
 		}
 		catch (IOException exc) {
