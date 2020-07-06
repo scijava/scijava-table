@@ -72,10 +72,31 @@ public class DefaultTableIOService extends AbstractService implements
 	}
 
 	@Override
+	public Table<?, ?> open(String source, TableIOOptions options) throws IOException {
+		IOPlugin<?> opener = ioService.getOpener(source);
+		if (opener != null && Table.class.isAssignableFrom(opener.getDataType())
+			&& TableIOPlugin.class.isAssignableFrom(opener.getClass())) {
+			return ((TableIOPlugin)opener).open(source, options);
+		}
+		throw new UnsupportedOperationException("No compatible opener found.");
+	}
+
+	@Override
 	public void save(Table<?, ?> table, String destination) throws IOException {
 		IOPlugin<Table<?, ?>> saver = ioService.getSaver(table, destination);
 		if (saver != null) {
 			saver.save(table, destination);
+		}
+		else {
+			throw new UnsupportedOperationException("No compatible saver found.");
+		}
+	}
+
+	@Override
+	public void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException {
+		IOPlugin<Table> saver = ioService.getSaver(table, destination);
+		if (saver != null && TableIOPlugin.class.isAssignableFrom(saver.getClass())) {
+			((TableIOPlugin)saver).save(table, destination, options);
 		}
 		else {
 			throw new UnsupportedOperationException("No compatible saver found.");

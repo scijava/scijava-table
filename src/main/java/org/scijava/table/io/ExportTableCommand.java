@@ -49,6 +49,15 @@ import org.scijava.widget.FileWidget;
 	@Menu(label = "Export"), @Menu(label = "Table...") })
 public class ExportTableCommand extends ContextCommand {
 
+	@Parameter(required = false, label = "Write column headers")
+	private boolean writeColHeaders = true;
+
+	@Parameter(required = false, label = "Write row headers")
+	private boolean writeRowHeaders = true;
+
+	@Parameter(required = false, label = "Column delimiter")
+	private char columnDelimiter = ',';
+
 	@Parameter
 	private LogService log;
 
@@ -68,7 +77,11 @@ public class ExportTableCommand extends ContextCommand {
 	@Override
 	public void run() {
 		try {
-			tableIO.save(tableDisplay.get(0), outputFile.getAbsolutePath());
+			TableIOOptions options = new TableIOOptions()
+					.writeColumnHeaders(writeColHeaders)
+					.writeRowHeaders(writeRowHeaders)
+					.columnDelimiter(columnDelimiter);
+			tableIO.save(tableDisplay.get(0), outputFile.getAbsolutePath(), options);
 		}
 		catch (IOException exc) {
 			log.error(exc);

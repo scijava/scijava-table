@@ -28,23 +28,24 @@
  * #L%
  */
 
-package org.scijava.table;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
+package org.scijava.table.io;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
-import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.IOPlugin;
 import org.scijava.plugin.PluginInfo;
 import org.scijava.plugin.PluginService;
-import org.scijava.table.io.DefaultTableIOService;
-import org.scijava.table.io.TableIOService;
+import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.GenericTable;
+import org.scijava.table.Table;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TableIOServiceTest {
 
@@ -65,9 +66,10 @@ public class TableIOServiceTest {
 		context = null;
 	}
 
+
 	@Test
 	public void testTableIOService() {
-		String tableFile = "fakeTableFile.csv";
+		String tableFile = "test.fakeTable";
 		GenericTable table = new DefaultGenericTable();
 		TableIOService tableIOService = context.getService(TableIOService.class);
 		assertTrue(tableIOService.getClass().equals(DefaultTableIOService.class));
@@ -82,27 +84,55 @@ public class TableIOServiceTest {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	public static class FakeTableIOPlugin extends AbstractIOPlugin<Table> {
-		
-		@Override
-		public Class<Table> getDataType() {
-			return Table.class;
+	@Test
+	public void testTableIOServiceWithOptions() {
+		String tableFile = "test.fakeTable";
+		TableIOService tableIOService = context.getService(TableIOService.class);
+		TableIOOptions options = new TableIOOptions()
+				.readColumnHeaders(true)
+				.readRowHeaders(true)
+				.rowDelimiter("|")
+				.columnDelimiter('-');
+		try {
+			Table<?, ?> data = tableIOService.open(tableFile, options);
+			assertTrue(Table.class.isAssignableFrom(data.getClass()));
+			assertEquals(1, data.getRowCount());
+			assertEquals(1, data.getColumnCount());
+			assertEquals("-", data.getColumnHeader(0));
+			assertEquals("|", data.getRowHeader(0));
 		}
+		catch (IOException exc) {
+			fail(exc.toString());
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	public static class FakeTableIOPlugin extends TableIOPlugin {
 
 		@Override
 		public boolean supportsOpen(String loc) {
-			return loc.endsWith("csv");
+			return loc.endsWith("fakeTable");
 		}
 
 		@Override
 		public boolean supportsSave(String loc) {
-			return loc.endsWith("csv");
+			return loc.endsWith("fakeTable");
 		}
-		
+
+		/**
+		 * This method creates a fake table for the purpose of testing the propagation of options.
+		 * It creates a row and a column with header names based on the {@param options}.
+		 */
 		@Override
-		public Table open(String loc) {
-			return new DefaultGenericTable();
+		public Table open(String loc, TableIOOptions options) {
+			DefaultGenericTable table = new DefaultGenericTable();
+			if(options.values.readColumnHeaders()) {
+				table.appendColumn(String.valueOf(options.values.columnDelimiter()));
+			}
+			if(options.values.readRowHeaders()) {
+				table.appendRow(options.values.rowDelimiter());
+			}
+			return table;
 		}
 	}
 
