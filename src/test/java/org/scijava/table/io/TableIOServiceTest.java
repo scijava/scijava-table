@@ -69,7 +69,7 @@ public class TableIOServiceTest {
 
 	@Test
 	public void testTableIOService() {
-		String tableFile = "fakeTableFile.csv";
+		String tableFile = "test.fakeTable";
 		GenericTable table = new DefaultGenericTable();
 		TableIOService tableIOService = context.getService(TableIOService.class);
 		assertTrue(tableIOService.getClass().equals(DefaultTableIOService.class));
@@ -86,7 +86,7 @@ public class TableIOServiceTest {
 
 	@Test
 	public void testTableIOServiceWithOptions() {
-		String tableFile = "fakeTableFile.csv";
+		String tableFile = "test.fakeTable";
 		TableIOService tableIOService = context.getService(TableIOService.class);
 		TableIOOptions options = new TableIOOptions()
 				.readColumnHeaders(true)
@@ -111,12 +111,12 @@ public class TableIOServiceTest {
 
 		@Override
 		public boolean supportsOpen(String loc) {
-			return loc.endsWith("csv");
+			return loc.endsWith("fakeTable");
 		}
 
 		@Override
 		public boolean supportsSave(String loc) {
-			return loc.endsWith("csv");
+			return loc.endsWith("fakeTable");
 		}
 
 		/**
