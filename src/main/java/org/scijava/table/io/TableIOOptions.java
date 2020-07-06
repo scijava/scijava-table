@@ -43,22 +43,22 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 
 	public final Values values = new Values();
 	private final Map<Integer, ColumnTableIOOptions> columnOptions;
-	private static final String readColHeadersId = "readColHeaders";
-	private static final String columnOptionsId = "columnOptions";
-	private static final String writeColHeadersId = "writeColHeaders";
-	private static final String readRowHeadersId = "readRowHeaders";
-	private static final String writeRowHeadersId = "writeRowHeaders";
-	private static final String columnDelimiterId = "columnDelimiter";
-	private static final String rowDelimiterId = "rowDelimiter";
-	private static final String quoteId = "quote";
-	private static final String cornerTextId = "cornerText";
-	private static final String guessParserId = "guessParser";
-	private static final String parserId = "parser";
-	private static final String formatterId = "formatter";
+	private static final String readColHeadersKey = "readColHeaders";
+	private static final String columnOptionsKey = "columnOptions";
+	private static final String writeColHeadersKey = "writeColHeaders";
+	private static final String readRowHeadersKey = "readRowHeaders";
+	private static final String writeRowHeadersKey = "writeRowHeaders";
+	private static final String columnDelimiterKey = "columnDelimiter";
+	private static final String rowDelimiterKey = "rowDelimiter";
+	private static final String quoteKey = "quote";
+	private static final String cornerTextKey = "cornerText";
+	private static final String guessParserKey = "guessParser";
+	private static final String parserKey = "parser";
+	private static final String formatterKey = "formatter";
 
 	public TableIOOptions() {
 		this.columnOptions = new HashMap<>();
-		setValue(columnOptionsId, columnOptions);
+		setValue(columnOptionsKey, columnOptions);
 	}
 
 	/**
@@ -73,63 +73,63 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 	 * @param readColHeaders Whether to read the first column of the input file as column headers.
 	 */
 	public TableIOOptions readColumnHeaders(boolean readColHeaders) {
-		return setValue(readColHeadersId, readColHeaders);
+		return setValue(readColHeadersKey, readColHeaders);
 	}
 
 	/**
 	 * @param writeColHeaders Whether to write column headers to file.
 	 */
 	public TableIOOptions writeColumnHeaders(boolean writeColHeaders) {
-		return setValue(writeColHeadersId, writeColHeaders);
+		return setValue(writeColHeadersKey, writeColHeaders);
 	}
 
 	/**
 	 * @param readRowHeaders Whether to read the first column of the input file as row headers.
 	 */
 	public TableIOOptions readRowHeaders(boolean readRowHeaders) {
-		return setValue(readRowHeadersId, readRowHeaders);
+		return setValue(readRowHeadersKey, readRowHeaders);
 	}
 
 	/**
 	 * @param writeRowHeaders Whether to write row headers to file.
 	 */
 	public TableIOOptions writeRowHeaders(boolean writeRowHeaders) {
-		return setValue(writeRowHeadersId, writeRowHeaders);
+		return setValue(writeRowHeadersKey, writeRowHeaders);
 	}
 
 	/**
 	 * @param columnDelimiter Character separating cells in each row of the table.
 	 */
 	public TableIOOptions columnDelimiter(char columnDelimiter) {
-		return setValue(columnDelimiterId, columnDelimiter);
+		return setValue(columnDelimiterKey, columnDelimiter);
 	}
 
 	/**
 	 * @param rowDelimiter Delimiter used at end of row when writing to or reading from file.
 	 */
 	public TableIOOptions rowDelimiter(String rowDelimiter) {
-		return setValue(rowDelimiterId, rowDelimiter);
+		return setValue(rowDelimiterKey, rowDelimiter);
 	}
 
 	/**
 	 * @param quote Character used for escaping separator and empty strings.
 	 */
 	public TableIOOptions quote(char quote) {
-		return setValue(quoteId, quote);
+		return setValue(quoteKey, quote);
 	}
 
 	/**
 	 * @param cornerText Text that appears at the top left corner when both column and row headers present.
 	 */
 	public TableIOOptions cornerText(String cornerText) {
-		return setValue(cornerTextId, cornerText);
+		return setValue(cornerTextKey, cornerText);
 	}
 
 	/**
 	 * @param guessParser If true, allow opener to guess the data type of each column.
 	 */
 	public TableIOOptions guessParser(boolean guessParser) {
-		return setValue(guessParserId, guessParser);
+		return setValue(guessParserKey, guessParser);
 	}
 
 	/**
@@ -137,14 +137,14 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 	 */
 	public TableIOOptions parser(Function<String, Object> parser) {
 		guessParser(false);
-		return setValue(parserId, parser);
+		return setValue(parserKey, parser);
 	}
 
 	/**
 	 * @param formatter Formatter to use when writing data objects into table entries.
 	 */
 	public TableIOOptions formatter(Function<Object, String> formatter) {
-		return setValue(formatterId, formatter);
+		return setValue(formatterKey, formatter);
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		ColumnTableIOOptions options = new ColumnTableIOOptions();
 		columnOptions.putIfAbsent(column, options);
 		options.formatter(String::valueOf).parser(getParser(type));
-		return setValue(columnOptionsId, columnOptions);
+		return setValue(columnOptionsKey, columnOptions);
 	}
 
 	/**
@@ -204,77 +204,77 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		 * @return Whether to read the first column of the input file as row headers.
 		 */
 		public boolean readColumnHeaders() {
-			return getValueOrDefault(readColHeadersId, true);
+			return getValueOrDefault(readColHeadersKey, true);
 		}
 
 		/**
 		 * @return Whether to write column headers to file.
 		 */
 		public boolean writeColumnHeaders() {
-			return getValueOrDefault(writeColHeadersId, true);
+			return getValueOrDefault(writeColHeadersKey, true);
 		}
 
 		/**
 		 * @return Whether to read the first column of the input file as row headers.
 		 */
 		public boolean readRowHeaders() {
-			return getValueOrDefault(readRowHeadersId, true);
+			return getValueOrDefault(readRowHeadersKey, true);
 		}
 
 		/**
 		 * @return Whether to write row headers to file.
 		 */
 		public boolean writeRowHeaders() {
-			return getValueOrDefault(writeRowHeadersId, true);
+			return getValueOrDefault(writeRowHeadersKey, true);
 		}
 
 		/**
 		 * @return Character separating cells in each row of the table.
 		 */
 		public char columnDelimiter() {
-			return getValueOrDefault(columnDelimiterId, ',');
+			return getValueOrDefault(columnDelimiterKey, ',');
 		}
 
 		/**
 		 * @return Delimiter used at end of row when writing to or reading from file.
 		 */
 		public String rowDelimiter() {
-			return getValueOrDefault(rowDelimiterId, System.lineSeparator());
+			return getValueOrDefault(rowDelimiterKey, System.lineSeparator());
 		}
 
 		/**
 		 * @return Character used for escaping separator and empty strings.
 		 */
 		public char quote() {
-			return getValueOrDefault(quoteId, '"');
+			return getValueOrDefault(quoteKey, '"');
 		}
 
 		/**
 		 * @return Text that appears at the top left corner when both column and row headers present.
 		 */
 		public String cornerText() {
-			return getValueOrDefault(cornerTextId, "\\");
+			return getValueOrDefault(cornerTextKey, "\\");
 		}
 
 		/**
 		 * @return If true, allow opener to guess the data type of each column.
 		 */
 		public boolean guessParser() {
-			return getValueOrDefault(guessParserId, true);
+			return getValueOrDefault(guessParserKey, true);
 		}
 
 		/**
 		 * @return Parser to use when converting table entries into data objects.
 		 */
 		public Function<String, Object> parser() {
-			return getValueOrDefault(parserId, String::valueOf);
+			return getValueOrDefault(parserKey, String::valueOf);
 		}
 
 		/**
 		 * @return Formatter to use when writing data objects into table entries.
 		 */
 		public Function<Object, String> formatter() {
-			return getValueOrDefault(formatterId, String::valueOf);
+			return getValueOrDefault(formatterKey, String::valueOf);
 		}
 
 		/**
@@ -282,7 +282,7 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		 * @return the values of this column's options
 		 */
 		public ColumnTableIOOptions.Values column(int column) {
-			ColumnTableIOOptions columnOptions = getValueOrDefault(columnOptionsId, new HashMap<Integer, ColumnTableIOOptions>()).get(column);
+			ColumnTableIOOptions columnOptions = getValueOrDefault(columnOptionsKey, new HashMap<Integer, ColumnTableIOOptions>()).get(column);
 			if(columnOptions == null) return null;
 			return columnOptions.values;
 		}

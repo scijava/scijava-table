@@ -40,25 +40,25 @@ import java.util.function.Function;
 public class ColumnTableIOOptions extends AbstractOptions<ColumnTableIOOptions> {
 
 	public final ColumnTableIOOptions.Values values = new ColumnTableIOOptions.Values();
-	private static final String parserId = "parser";
-	private static final String formatterId = "formatter";
+	private static final String parserKey = "parser";
+	private static final String formatterKey = "formatter";
 
 	ColumnTableIOOptions formatter(Function<Object, String> formatter) {
-		return setValue(formatterId, formatter);
+		return setValue(formatterKey, formatter);
 	}
 
 	ColumnTableIOOptions parser(Function<String, Object> parser) {
-		return setValue(parserId, parser);
+		return setValue(parserKey, parser);
 	}
 
 	public class Values extends AbstractValues {
 
 		public Function<Object, String> formatter() {
-			return getValueOrDefault(formatterId, String::valueOf);
+			return getValueOrDefault(formatterKey, String::valueOf);
 		}
 
 		public Function<String, Object> parser() {
-			return getValueOrDefault(parserId, String::valueOf);
+			return getValueOrDefault(parserKey, String::valueOf);
 		}
 	}
 
