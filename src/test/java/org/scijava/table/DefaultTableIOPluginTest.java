@@ -311,21 +311,6 @@ public class DefaultTableIOPluginTest {
 		return result;
 	}
 
-	private void setValues(final Object instance, final String[] fieldNames,
-		final Object[] values) throws SecurityException
-	{
-		final Class<?> cls = instance.getClass();
-		final List<Field> fields = ClassUtils.getAnnotatedFields(cls,
-			Parameter.class);
-		final HashMap<String, Field> fieldMap = new HashMap<>();
-		for (final Field field : fields) {
-			fieldMap.put(field.getName(), field);
-		}
-		for (int i = 0; i < fieldNames.length; i++) {
-			ClassUtils.setValue(fieldMap.get(fieldNames[i]), instance, values[i]);
-		}
-	}
-
 	private String makeTableSource(final String[][] cells, final String separator,
 		final String eol)
 	{

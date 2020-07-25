@@ -269,17 +269,7 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 	@Override
 	public void save(final Table table, final String destination)
 			throws IOException {
-		TableIOOptions options = new TableIOOptions();
-		// DISCUSS if we guess at his point if column or row headers should be written, the plugin will behave differently
-		// if you call save(table, destination) vs. save(table, destination, new TableIOOptions())
-		// .. and this seems just wrong.
-//		options.writeColHeaders(table.getColumnCount() > 0 && //
-//				IntStream.range(0, table.getColumnCount()).allMatch(col -> table
-//						.getColumnHeader(col) != null));
-//		options.writeRowHeaders(table.getRowCount() > 0 && //
-//				IntStream.range(0, table.getRowCount()).allMatch(row -> table
-//						.getRowHeader(row) != null));
-		save(table, destination, options.values);
+		save(table, destination, new TableIOOptions().values);
 	}
 
 	@Override
