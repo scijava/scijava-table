@@ -96,6 +96,7 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 		<scijava-table.version>0.6.0</scijava-table.version>
+		<scijava-optional.version>1.0.0</scijava-optional.version>
 	</properties>
 
 	<dependencies>
@@ -110,7 +111,7 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-optional</artifactId>
-			<version>1.0.0</version>
+			<version>${scijava-optional.version}</version>
 		</dependency>
 
 		<!-- Test scope dependencies -->
