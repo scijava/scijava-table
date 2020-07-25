@@ -254,6 +254,7 @@ public class DefaultTableIOPluginTest {
 		assertEquals(false, DefaultTableIOPlugin.guessParser("false").apply("false"));
 		assertEquals(123.0, DefaultTableIOPlugin.guessParser("123.0").apply("123.0"));
 		assertEquals(-123.0, DefaultTableIOPlugin.guessParser("-123.0").apply("-123.0"));
+		assertEquals(3, DefaultTableIOPlugin.guessParser("3").apply("3"));
 		assertEquals(1234567890.0987654321, DefaultTableIOPlugin.guessParser("1.2345678900987654E9").apply("1.2345678900987654E9"));
 		assertEquals(Double.NaN, DefaultTableIOPlugin.guessParser("NaN").apply("NaN"));
 		assertEquals(Double.NEGATIVE_INFINITY, DefaultTableIOPlugin.guessParser("-Infinity").apply("-Infinity"));
