@@ -256,10 +256,6 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 			Double.valueOf(content);
 			return Double::valueOf;
 		} catch(NumberFormatException ignored) {}
-		try {
-			Float.valueOf(content);
-			return Float::valueOf;
-		} catch(NumberFormatException ignored) {}
 		if(content.equalsIgnoreCase("true")||content.equalsIgnoreCase("false")) {
 			return Boolean::valueOf;
 		}
