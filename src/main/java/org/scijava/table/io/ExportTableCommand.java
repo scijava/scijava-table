@@ -46,7 +46,7 @@ import org.scijava.widget.FileWidget;
 
 @Plugin(type = Command.class, menu = { @Menu(label = MenuConstants.FILE_LABEL,
 	weight = MenuConstants.FILE_WEIGHT, mnemonic = MenuConstants.FILE_MNEMONIC),
-	@Menu(label = "Export"), @Menu(label = "Table...") })
+	@Menu(label = "Export"), @Menu(label = "Table...  ") })
 public class ExportTableCommand extends ContextCommand {
 
 	@Parameter(required = false, label = "Write column headers")
