@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>29.0.0-beta-3</version>
+		<version>29.2.0</version>
 		<relativePath />
 	</parent>
 
 	<artifactId>scijava-plugins-io-table</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
 
 	<name>SciJava IO Plugin: Tables</name>
 	<description>I/O plugins for SciJava table objects.</description>
@@ -95,8 +95,7 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
-		<scijava-table.version>0.6.0</scijava-table.version>
-		<scijava-optional.version>1.0.0</scijava-optional.version>
+		<scijava-table.version>0.6.1</scijava-table.version>
 	</properties>
 
 	<dependencies>
@@ -111,7 +110,6 @@ Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-optional</artifactId>
-			<version>${scijava-optional.version}</version>
 		</dependency>
 
 		<!-- Test scope dependencies -->
