@@ -36,10 +36,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.After;
@@ -52,10 +50,8 @@ import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
 import org.scijava.io.location.FileLocation;
 import org.scijava.io.location.Location;
-import org.scijava.plugin.Parameter;
 import org.scijava.table.io.TableIOOptions;
 import org.scijava.table.io.TableIOPlugin;
-import org.scijava.util.ClassUtils;
 
 /**
  * Tests for {@link DefaultTableIOPlugin}.
@@ -293,7 +289,7 @@ public class DefaultTableIOPluginTest {
 		tempFiles.add(tempFile);
 		try (DataHandle<Location> destHandle = dataHandleService.create(new FileLocation(tempFile))) {
 			destHandle.write(tableSource.getBytes());
-			result = tableIO.open(tempFile.getAbsolutePath(), options);
+			result = tableIO.open(destHandle.get(), options);
 		}
 		return result;
 	}
@@ -307,7 +303,7 @@ public class DefaultTableIOPluginTest {
 		File tempFile = File.createTempFile("saveTest", ".txt");
 		tempFiles.add(tempFile);
 		try (DataHandle<Location> sourceHandle = dataHandleService.create(new FileLocation(tempFile))) {
-			tableIO.save(table, tempFile.getAbsolutePath(), options);
+			tableIO.save(table, sourceHandle.get(), options);
 			result = sourceHandle.readString(Integer.MAX_VALUE);
 		}
 		return result;
