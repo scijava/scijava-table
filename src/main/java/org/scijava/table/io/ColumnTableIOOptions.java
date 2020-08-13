@@ -47,7 +47,7 @@ public class ColumnTableIOOptions extends AbstractOptions<ColumnTableIOOptions> 
 		return setValue(formatterKey, formatter);
 	}
 
-	ColumnTableIOOptions parser(Function<String, Object> parser) {
+	ColumnTableIOOptions parser(Function<String, ?> parser) {
 		return setValue(parserKey, parser);
 	}
 
@@ -57,7 +57,7 @@ public class ColumnTableIOOptions extends AbstractOptions<ColumnTableIOOptions> 
 			return getValueOrDefault(formatterKey, String::valueOf);
 		}
 
-		public Function<String, Object> parser() {
+		public Function<String, ?> parser() {
 			return getValueOrDefault(parserKey, String::valueOf);
 		}
 	}
