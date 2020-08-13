@@ -34,7 +34,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
+import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.IOPlugin;
+import org.scijava.io.location.Location;
 import org.scijava.plugin.PluginInfo;
 import org.scijava.plugin.PluginService;
 import org.scijava.table.DefaultGenericTable;
@@ -107,16 +109,16 @@ public class TableIOServiceTest {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static class FakeTableIOPlugin extends TableIOPlugin {
+	public static class FakeTableIOPlugin extends AbstractIOPlugin<Table> implements TableIOPlugin {
 
 		@Override
-		public boolean supportsOpen(String loc) {
-			return loc.endsWith("fakeTable");
+		public boolean supportsOpen(Location loc) {
+			return loc.getName().endsWith("fakeTable");
 		}
 
 		@Override
-		public boolean supportsSave(String loc) {
-			return loc.endsWith("fakeTable");
+		public boolean supportsSave(Location loc) {
+			return loc.getName().endsWith("fakeTable");
 		}
 
 		/**
@@ -124,7 +126,7 @@ public class TableIOServiceTest {
 		 * It creates a row and a column with header names based on the {@param options}.
 		 */
 		@Override
-		public Table open(String loc, TableIOOptions options) {
+		public Table open(Location loc, TableIOOptions options) {
 			DefaultGenericTable table = new DefaultGenericTable();
 			if(options.values.readColumnHeaders()) {
 				table.appendColumn(String.valueOf(options.values.columnDelimiter()));

@@ -32,18 +32,25 @@ package org.scijava.table.io;
 
 import java.io.IOException;
 
+import org.scijava.io.IOService;
+import org.scijava.io.TypedIOService;
+import org.scijava.io.location.Location;
 import org.scijava.service.SciJavaService;
 import org.scijava.table.Table;
 
-public interface TableIOService extends SciJavaService {
+public interface TableIOService extends TypedIOService<Table<?, ?>> {
 
-	boolean canOpen(String source);
-
-	boolean canSave(Table<?, ?> table, String destination);
-
-	Table<?, ?> open(String source) throws IOException;
+	@Override
+	default Table<?, ?> open(Location source) throws IOException {
+		return open(source, TableIOOptions.options());
+	}
 	Table<?, ?> open(String source, TableIOOptions options) throws IOException;
+	Table<?, ?> open(Location source, TableIOOptions options) throws IOException;
 
-	void save(Table<?, ?> table, String destination) throws IOException;
+	@Override
+	default void save(Table<?, ?> table, Location destination) throws IOException {
+		save(table, destination, TableIOOptions.options());
+	}
 	void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException;
+	void save(Table<?, ?> table, Location destination, TableIOOptions options) throws IOException;
 }

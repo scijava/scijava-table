@@ -31,49 +31,41 @@
 package org.scijava.table.io;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
+import org.scijava.io.AbstractTypedIOService;
 import org.scijava.io.IOPlugin;
 import org.scijava.io.IOService;
+import org.scijava.io.location.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.service.AbstractService;
 import org.scijava.service.Service;
 import org.scijava.table.Table;
 
 @Plugin(type = Service.class)
-public class DefaultTableIOService extends AbstractService implements
+public class DefaultTableIOService extends AbstractTypedIOService<Table<?, ?>> implements
 	TableIOService
 {
 
-	@Parameter
-	private IOService ioService;
-
 	@Override
-	public boolean canOpen(String source) {
-		IOPlugin<?> opener = ioService.getOpener(source);
+	public boolean canOpen(Location source) {
+		IOPlugin<?> opener = ioService().getOpener(source);
 		if (opener == null) return false;
 		return Table.class.isAssignableFrom(opener.getDataType());
 	}
 
 	@Override
-	public boolean canSave(Table<?, ?> table, String destination) {
-		IOPlugin<Table<?, ?>> saver = ioService.getSaver(table, destination);
-		if (saver == null) return false;
-		return saver.supportsSave(destination);
-	}
-
-	@Override
-	public Table<?, ?> open(String source) throws IOException {
-		IOPlugin<?> opener = ioService.getOpener(source);
-		if (opener != null && Table.class.isAssignableFrom(opener.getDataType())) {
-			return (Table<?, ?>) opener.open(source);
-		}
-		throw new UnsupportedOperationException("No compatible opener found.");
-	}
-
-	@Override
 	public Table<?, ?> open(String source, TableIOOptions options) throws IOException {
-		IOPlugin<?> opener = ioService.getOpener(source);
+		try {
+			return open(locationService().resolve(source), options);
+		} catch (URISyntaxException e) {
+			throw new IOException(e);
+		}
+	}
+
+	@Override
+	public Table<?, ?> open(Location source, TableIOOptions options) throws IOException {
+		IOPlugin<?> opener = ioService().getOpener(source);
 		if (opener != null && Table.class.isAssignableFrom(opener.getDataType())
 			&& TableIOPlugin.class.isAssignableFrom(opener.getClass())) {
 			return ((TableIOPlugin)opener).open(source, options);
@@ -82,19 +74,17 @@ public class DefaultTableIOService extends AbstractService implements
 	}
 
 	@Override
-	public void save(Table<?, ?> table, String destination) throws IOException {
-		IOPlugin<Table<?, ?>> saver = ioService.getSaver(table, destination);
-		if (saver != null) {
-			saver.save(table, destination);
-		}
-		else {
-			throw new UnsupportedOperationException("No compatible saver found.");
+	public void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException {
+		try {
+			save(table, locationService().resolve(destination), options);
+		} catch (URISyntaxException e) {
+			throw new IOException(e);
 		}
 	}
 
 	@Override
-	public void save(Table<?, ?> table, String destination, TableIOOptions options) throws IOException {
-		IOPlugin<Table> saver = ioService.getSaver(table, destination);
+	public void save(Table<?, ?> table, Location destination, TableIOOptions options) throws IOException {
+		IOPlugin<Table> saver = ioService().getSaver(table, destination);
 		if (saver != null && TableIOPlugin.class.isAssignableFrom(saver.getClass())) {
 			((TableIOPlugin)saver).save(table, destination, options);
 		}
@@ -102,4 +92,5 @@ public class DefaultTableIOService extends AbstractService implements
 			throw new UnsupportedOperationException("No compatible saver found.");
 		}
 	}
+
 }
