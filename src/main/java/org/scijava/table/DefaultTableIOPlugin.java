@@ -247,18 +247,14 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 		return options.parser();
 	}
 
-	static Function<String, Object> guessParser(String content) {
+	static Function<String, ?> guessParser(String content) {
 		try {
-			Integer.valueOf(content);
-			return Integer::valueOf;
-		} catch(NumberFormatException ignored) {}
-		try {
-			Long.valueOf(content);
-			return Long::valueOf;
-		} catch(NumberFormatException ignored) {}
-		try {
-			Double.valueOf(content);
-			return Double::valueOf;
+			Function<String, ?> function = s -> Double.valueOf(s
+					.replace("infinity", "Infinity")
+					.replace("Nan", "NaN")
+			);
+			function.apply(content);
+			return function;
 		} catch(NumberFormatException ignored) {}
 		if(content.equalsIgnoreCase("true")||content.equalsIgnoreCase("false")) {
 			return Boolean::valueOf;
