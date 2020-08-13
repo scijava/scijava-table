@@ -30,7 +30,8 @@
 
 package org.scijava.table.io;
 
-import org.scijava.io.AbstractIOPlugin;
+import org.scijava.io.IOPlugin;
+import org.scijava.io.location.Location;
 import org.scijava.table.Table;
 
 import java.io.IOException;
@@ -40,32 +41,30 @@ import java.io.IOException;
  *
  * @author Deborah Schmidt
  */
-public class TableIOPlugin extends AbstractIOPlugin<Table> {
+public interface TableIOPlugin extends IOPlugin<Table> {
 
 	@Override
-	public Table<?, ?> open(String source) throws IOException {
+	default Table<?, ?> open(Location source) throws IOException {
 		return open(source, new TableIOOptions());
 	}
 
 	/** Opens data from the given source. */
-	@SuppressWarnings("unused")
-	public Table<?, ?> open(final String source, final TableIOOptions options) throws IOException {
+	default Table<?, ?> open(final Location source, final TableIOOptions options) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void save(Table data, String destination) throws IOException {
+	default void save(Table data, Location destination) throws IOException {
 		save(data, destination, new TableIOOptions());
 	}
 
 	/** Saves the given data to the specified destination. */
-	@SuppressWarnings("unused")
-	public void save(final Table<?, ?> data, final String destination, final TableIOOptions options) throws IOException {
+	default void save(final Table<?, ?> data, final Location destination, final TableIOOptions options) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Class<Table> getDataType() {
+	default Class<Table> getDataType() {
 		return Table.class;
 	}
 }

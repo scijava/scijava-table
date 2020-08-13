@@ -135,7 +135,7 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 	/**
 	 * @param parser Parser to use when converting table entries into data objects.
 	 */
-	public TableIOOptions parser(Function<String, Object> parser) {
+	public TableIOOptions parser(Function<String, ?> parser) {
 		guessParser(false);
 		return setValue(parserKey, parser);
 	}
@@ -188,7 +188,7 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		return this;
 	}
 
-	private Function<String, Object> getParser(Class<?> type) {
+	private Function<String, ?> getParser(Class<?> type) {
 		if(type.equals(String.class)) return String::valueOf;
 		if(type.equals(Double.class)) return Double::valueOf;
 		if(type.equals(Float.class)) return Float::valueOf;
@@ -266,7 +266,7 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		/**
 		 * @return Parser to use when converting table entries into data objects.
 		 */
-		public Function<String, Object> parser() {
+		public Function<String, ?> parser() {
 			return getValueOrDefault(parserKey, String::valueOf);
 		}
 

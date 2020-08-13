@@ -102,6 +102,7 @@ Wisconsin-Madison, and Friedrich Miescher Institute for Biomedical Research.</li
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<scijava-common.version>2.84.0</scijava-common.version>
 	</properties>
 
 	<dependencies>
