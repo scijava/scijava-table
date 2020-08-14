@@ -36,10 +36,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.After;
@@ -52,10 +50,8 @@ import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
 import org.scijava.io.location.FileLocation;
 import org.scijava.io.location.Location;
-import org.scijava.plugin.Parameter;
 import org.scijava.table.io.TableIOOptions;
 import org.scijava.table.io.TableIOPlugin;
-import org.scijava.util.ClassUtils;
 
 /**
  * Tests for {@link DefaultTableIOPlugin}.
@@ -115,7 +111,7 @@ public class DefaultTableIOPluginTest {
 	}
 
 	/**
-	 * Tests if quoting works in different senarios.
+	 * Tests if quoting works in different scenarios.
 	 */
 	@Test
 	public void testQuote() {
@@ -164,7 +160,7 @@ public class DefaultTableIOPluginTest {
 	}
 
 	/**
-	 * Tests if samll tables could be opened/saved correctly.
+	 * Tests if small tables can be opened/saved correctly.
 	 */
 	@Test
 	public void testSmallTables() {
@@ -254,11 +250,13 @@ public class DefaultTableIOPluginTest {
 		assertEquals(false, DefaultTableIOPlugin.guessParser("false").apply("false"));
 		assertEquals(123.0, DefaultTableIOPlugin.guessParser("123.0").apply("123.0"));
 		assertEquals(-123.0, DefaultTableIOPlugin.guessParser("-123.0").apply("-123.0"));
-		assertEquals(3, DefaultTableIOPlugin.guessParser("3").apply("3"));
-		assertEquals(36564573745634564L, DefaultTableIOPlugin.guessParser("36564573745634564").apply("36564573745634564"));
+		assertEquals(3.0, DefaultTableIOPlugin.guessParser("3").apply("3"));
+		assertEquals(36564573745634564d, DefaultTableIOPlugin.guessParser("36564573745634564").apply("36564573745634564"));
 		assertEquals(1234567890.0987654321, DefaultTableIOPlugin.guessParser("1.2345678900987654E9").apply("1.2345678900987654E9"));
 		assertEquals(Double.NaN, DefaultTableIOPlugin.guessParser("NaN").apply("NaN"));
+		assertEquals(Double.NaN, DefaultTableIOPlugin.guessParser("Nan").apply("Nan"));
 		assertEquals(Double.NEGATIVE_INFINITY, DefaultTableIOPlugin.guessParser("-Infinity").apply("-Infinity"));
+		assertEquals(Double.POSITIVE_INFINITY, DefaultTableIOPlugin.guessParser("infinity").apply("infinity"));
 		assertEquals(0.0, DefaultTableIOPlugin.guessParser("0.0").apply("0.0"));
 	}
 
@@ -293,7 +291,7 @@ public class DefaultTableIOPluginTest {
 		tempFiles.add(tempFile);
 		try (DataHandle<Location> destHandle = dataHandleService.create(new FileLocation(tempFile))) {
 			destHandle.write(tableSource.getBytes());
-			result = tableIO.open(tempFile.getAbsolutePath(), options);
+			result = tableIO.open(destHandle.get(), options);
 		}
 		return result;
 	}
@@ -307,7 +305,7 @@ public class DefaultTableIOPluginTest {
 		File tempFile = File.createTempFile("saveTest", ".txt");
 		tempFiles.add(tempFile);
 		try (DataHandle<Location> sourceHandle = dataHandleService.create(new FileLocation(tempFile))) {
-			tableIO.save(table, tempFile.getAbsolutePath(), options);
+			tableIO.save(table, sourceHandle.get(), options);
 			result = sourceHandle.readString(Integer.MAX_VALUE);
 		}
 		return result;

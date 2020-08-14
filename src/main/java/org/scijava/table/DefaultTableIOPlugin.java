@@ -30,7 +30,6 @@
 
 package org.scijava.table;
 
-import java.net.URISyntaxException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,11 +42,10 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.scijava.Priority;
-import org.scijava.io.IOPlugin;
+import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
 import org.scijava.io.location.Location;
-import org.scijava.io.location.LocationService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.table.io.ColumnTableIOOptions;
@@ -61,11 +59,8 @@ import org.scijava.util.FileUtils;
  * @author Leon Yang
  */
 @SuppressWarnings("rawtypes")
-@Plugin(type = IOPlugin.class, priority = Priority.LOW)
-public class DefaultTableIOPlugin extends TableIOPlugin {
-
-	@Parameter
-	private LocationService locationService;
+@Plugin(type = TableIOPlugin.class, priority = Priority.LOW)
+public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements TableIOPlugin {
 
 	@Parameter
 	private DataHandleService dataHandleService;
@@ -77,9 +72,25 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 			"rtf")));
 
 	@Override
+	public boolean supportsOpen(final Location source) {
+		final String ext = FileUtils.getExtension(source.getName()).toLowerCase();
+		return SUPPORTED_EXTENSIONS.contains(ext);
+	}
+
+	@Override
 	public boolean supportsOpen(final String source) {
 		final String ext = FileUtils.getExtension(source).toLowerCase();
 		return SUPPORTED_EXTENSIONS.contains(ext);
+	}
+
+	@Override
+	public boolean supportsSave(Object data, String destination) {
+		return supports(destination) && Table.class.isAssignableFrom(data.getClass());
+	}
+
+	@Override
+	public boolean supportsSave(final Location source) {
+		return supportsOpen(source);
 	}
 
 	@Override
@@ -143,23 +154,16 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 	}
 
 	@Override
-	public GenericTable open(final String source, TableIOOptions options) throws IOException {
+	public GenericTable open(final Location source, TableIOOptions options) throws IOException {
 		return open(source, options.values);
 	}
 
-	private GenericTable open(final String source, TableIOOptions.Values options) throws IOException {
+	private GenericTable open(final Location source, TableIOOptions.Values options) throws IOException {
 
-		final Location sourceLocation;
-		try {
-			sourceLocation = locationService.resolve(source);
-		}
-		catch (final URISyntaxException exc) {
-			throw new IOException("Unresolvable source: " + source, exc);
-		}
 		final GenericTable table = new DefaultGenericTable();
 
 		try (final DataHandle<? extends Location> handle = //
-			dataHandleService.create(sourceLocation))
+			dataHandleService.create(source))
 		{
 			if (!handle.exists()) {
 				throw new IOException("Cannot open source");
@@ -180,7 +184,7 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 			final String[] lines = text.split("\\R");
 			if (lines.length == 0) return table;
 			// process first line to get number of cols
-			Map<Integer, Function<String, Object>> columnParsers = new HashMap<>();
+			Map<Integer, Function<String, ?>> columnParsers = new HashMap<>();
 			{
 				final ArrayList<String> tokens = processRow(lines[0], separator, quote);
 				if (readColHeaders) {
@@ -203,7 +207,7 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 						table.appendRow();
 					}
 					for (int i = 0; i < cols.size(); i++) {
-						Function<String, Object> parser = getParser(cols.get(i), i, options);
+						Function<String, ?> parser = getParser(cols.get(i), i, options);
 						columnParsers.put(i, parser);
 						table.set(i, 0, parser.apply(cols.get(i)));
 					}
@@ -236,25 +240,21 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 		return table;
 	}
 
-	private static Function<String, Object> getParser(String content, int column, TableIOOptions.Values options) {
+	private static Function<String, ?> getParser(String content, int column, TableIOOptions.Values options) {
 		ColumnTableIOOptions.Values colOptions = options.column(column);
 		if(colOptions != null) return colOptions.parser();
 		if(options.guessParser()) return guessParser(content);
 		return options.parser();
 	}
 
-	static Function<String, Object> guessParser(String content) {
+	static Function<String, ?> guessParser(String content) {
 		try {
-			Integer.valueOf(content);
-			return Integer::valueOf;
-		} catch(NumberFormatException ignored) {}
-		try {
-			Long.valueOf(content);
-			return Long::valueOf;
-		} catch(NumberFormatException ignored) {}
-		try {
-			Double.valueOf(content);
-			return Double::valueOf;
+			Function<String, ?> function = s -> Double.valueOf(s
+					.replace("infinity", "Infinity")
+					.replace("Nan", "NaN")
+			);
+			function.apply(content);
+			return function;
 		} catch(NumberFormatException ignored) {}
 		if(content.equalsIgnoreCase("true")||content.equalsIgnoreCase("false")) {
 			return Boolean::valueOf;
@@ -263,29 +263,16 @@ public class DefaultTableIOPlugin extends TableIOPlugin {
 	}
 
 	@Override
-	public void save(final Table table, final String destination)
-			throws IOException {
-		save(table, destination, new TableIOOptions().values);
-	}
-
-	@Override
-	public void save(final Table table, final String destination, final TableIOOptions options)
+	public void save(final Table table, final Location destination, final TableIOOptions options)
 		throws IOException {
 		save(table, destination, options.values);
 	}
 
-	private void save(final Table table, final String destination, final TableIOOptions.Values options)
+	private void save(final Table table, final Location destination, final TableIOOptions.Values options)
 			throws IOException {
-		final Location dstLocation;
-		try {
-			dstLocation = locationService.resolve(destination);
-		}
-		catch (final URISyntaxException exc) {
-			throw new IOException("Unresolvable destination: " + destination, exc);
-		}
 
 		try (final DataHandle<Location> handle = //
-			dataHandleService.create(dstLocation))
+			dataHandleService.create(destination))
 		{
 			final boolean writeRH = options.writeRowHeaders();
 			final boolean writeCH = options.writeColumnHeaders();
