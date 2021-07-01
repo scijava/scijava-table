@@ -1,1 +1,1 @@
-[![Build Status](https://travis-ci.org/scijava/scijava-table.svg?branch=master)](https://travis-ci.org/scijava/scijava-table)
+[![Build Status](https://github.com/scijava/scijava-table/actions/workflows/build-main.yml/badge.svg)](https://github.com/scijava/scijava-table/actions/workflows/build-main.yml)
