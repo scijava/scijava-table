@@ -88,8 +88,8 @@
 		<url>https://github.com/scijava/scijava-plugins-io-table/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Travis CI</system>
-		<url>https://travis-ci.org/scijava/scijava-plugins-io-table</url>
+		<system>GitHub Actions</system>
+		<url>https://github.com/scijava/scijava-plugins-io-table/actions</url>
 	</ciManagement>
 
 	<properties>
@@ -99,7 +99,7 @@
 Wisconsin-Madison and University of Konstanz.</license.copyrightOwners>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
-		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 		<scijava-table.version>0.7.0</scijava-table.version>
 		<scijava-common.version>2.84.0</scijava-common.version>
 	</properties>
