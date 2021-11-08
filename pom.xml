@@ -78,7 +78,7 @@
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/scijava/scijava-plugins-io-table</connection>
+		<connection>scm:git:https://github.com/scijava/scijava-plugins-io-table</connection>
 		<developerConnection>scm:git:git@github.com:scijava/scijava-plugins-io-table</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/scijava/scijava-plugins-io-table</url>
