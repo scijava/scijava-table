@@ -31,7 +31,7 @@
 		<developer>
 			<id>ctrueden</id>
 			<name>Curtis Rueden</name>
-			<url>https://imagej.net/User:Rueden</url>
+			<url>https://imagej.net/people/ctrueden</url>
 			<roles>
 				<role>founder</role>
 				<role>lead</role>
@@ -45,7 +45,7 @@
 		<developer>
 			<id>imagejan</id>
 			<name>Jan Eglinger</name>
-			<url>https://imagej.net/User:Eglinger</url>
+			<url>https://imagej.net/people/imagejan</url>
 			<roles>
 				<role>founder</role>
 				<role>developer</role>
@@ -58,17 +58,17 @@
 	<contributors>
 		<contributor>
 			<name>Alison Walter</name>
-			<url>https://imagej.net/User:Awalter2</url>
+			<url>https://imagej.net/people/awalter17</url>
 			<properties><id>awalter17</id></properties>
 		</contributor>
 		<contributor>
 			<name>Barry DeZonia</name>
-			<url>https://imagej.net/User:Bdezonia</url>
+			<url>https://imagej.net/people/bdezonia</url>
 			<properties><id>bdezonia</id></properties>
 		</contributor>
 		<contributor>
 			<name>Deborah Schmidt</name>
-			<url>https://imagej.net/User:Frauzufall</url>
+			<url>https://imagej.net/people/frauzufall</url>
 			<properties><id>frauzufall</id></properties>
 		</contributor>
 	</contributors>
