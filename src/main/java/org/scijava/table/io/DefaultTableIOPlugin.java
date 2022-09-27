@@ -30,6 +30,7 @@
 
 package org.scijava.table.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import org.scijava.Priority;
 import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
+import org.scijava.io.location.FileLocation;
 import org.scijava.io.location.Location;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -75,14 +77,13 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 
 	@Override
 	public boolean supportsOpen(final Location source) {
-		final String ext = FileUtils.getExtension(source.getName()).toLowerCase();
-		return SUPPORTED_EXTENSIONS.contains(ext);
+		if (!(source instanceof FileLocation)) return false;
+		return supportsOpen(((FileLocation) source).getFile());
 	}
 
 	@Override
 	public boolean supportsOpen(final String source) {
-		final String ext = FileUtils.getExtension(source).toLowerCase();
-		return SUPPORTED_EXTENSIONS.contains(ext);
+		return supportsOpen(new File(source));
 	}
 
 	@Override
@@ -278,6 +279,12 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		final TableIOOptions options) throws IOException
 	{
 		save(table, destination, options.values);
+	}
+
+	private boolean supportsOpen(final File file) {
+		if (!file.exists() || file.isDirectory()) return false;
+		final String ext = FileUtils.getExtension(file).toLowerCase();
+		return SUPPORTED_EXTENSIONS.contains(ext);
 	}
 
 	private void save(final Table table, final Location destination,
