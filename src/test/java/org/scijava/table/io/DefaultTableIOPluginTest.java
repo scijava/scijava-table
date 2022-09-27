@@ -33,6 +33,7 @@ package org.scijava.table.io;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.scijava.table.io.DefaultTableIOPlugin.guessParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,28 +54,25 @@ import org.scijava.io.location.Location;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericTable;
 import org.scijava.table.Table;
-import org.scijava.table.io.DefaultTableIOPlugin;
-import org.scijava.table.io.TableIOOptions;
-import org.scijava.table.io.TableIOPlugin;
 
 /**
  * Tests for {@link DefaultTableIOPlugin}.
- * 
+ *
  * @author Leon Yang
  */
 @SuppressWarnings("rawtypes")
 public class DefaultTableIOPluginTest {
 
 	private static final Context ctx = new Context();
-	
-	private List<File> tempFiles = new ArrayList<>();
+
+	private final List<File> tempFiles = new ArrayList<>();
 
 	@Before
 	@After
 	public void removeTempFiles() {
-		Location source = new FileLocation("fake.csv");
+		final Location source = new FileLocation("fake.csv");
 		new File(source.getURI()).delete();
-		for (File f : tempFiles) {
+		for (final File f : tempFiles) {
 			assertTrue(f.delete());
 		}
 	}
@@ -84,7 +82,7 @@ public class DefaultTableIOPluginTest {
 	 */
 	@Test
 	public void testDefaultOptions() throws IOException {
-		final String[] colHeaders = {"col1", "col2", "col3", "col4", "col5"};
+		final String[] colHeaders = { "col1", "col2", "col3", "col4", "col5" };
 		final String[] rowHeaders = { "", "" };
 		final Double[][] content = { { 123.0, -123.0, 123.0, 123.0, 0.0 }, { 0.0,
 			1234567890.0987654321, Double.NaN, Double.NEGATIVE_INFINITY, 0.0 } };
@@ -93,7 +91,7 @@ public class DefaultTableIOPluginTest {
 			"\"\",123.0,-123.0,123.0,123.0,0.0\n" +
 			"\"\",0.0,1.2345678900987654E9,NaN,-Infinity,0.0\n";
 
-		GenericTable table = new DefaultGenericTable();
+		final GenericTable table = new DefaultGenericTable();
 		Arrays.stream(colHeaders).forEach(table::appendColumn);
 		Arrays.stream(rowHeaders).forEach(table::appendRow);
 		for (int i = 0; i < content.length; i++) {
@@ -104,8 +102,8 @@ public class DefaultTableIOPluginTest {
 
 		assertTableEquals(colHeaders, rowHeaders, content, table);
 
-		final TableIOPlugin tableIO = ctx.service(IOService.class)
-			.getInstance(DefaultTableIOPlugin.class);
+		final TableIOPlugin tableIO = //
+			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 
 		assertEquals(expected, saveTable(table, tableIO, TableIOOptions.options()));
 
@@ -138,19 +136,18 @@ public class DefaultTableIOPluginTest {
 			"'should\tnot,break',unnecessary_quotes,should,break\r\n" +
 			"'some,empty,cells','','',''\r\n";
 
-		final TableIOPlugin tableIO = ctx.service(IOService.class)
-			.getInstance(DefaultTableIOPlugin.class);
+		final TableIOPlugin tableIO = //
+			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 		try {
-
-			TableIOOptions options = TableIOOptions.options()
-					.readColumnHeaders(true)
-					.readRowHeaders(true)
-					.writeColumnHeaders(true)
-					.writeRowHeaders(true)
-					.columnDelimiter(' ')
-					.rowDelimiter("\r\n")
-					.quote('\'')
-					.cornerText("CORNER_TEXT");
+			final TableIOOptions options = TableIOOptions.options()//
+				.readColumnHeaders(true)//
+				.readRowHeaders(true)//
+				.writeColumnHeaders(true)//
+				.writeRowHeaders(true)//
+				.columnDelimiter(' ')//
+				.rowDelimiter("\r\n")//
+				.quote('\'')//
+				.cornerText("CORNER_TEXT");
 			final Table table = openTable(tableSource, tableIO, options);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 
@@ -183,47 +180,52 @@ public class DefaultTableIOPluginTest {
 		final Double[][] content = { { 3.1415926 } };
 		final Double[][] emptyContent = { {} };
 
-		final TableIOPlugin tableIO = ctx.service(IOService.class)
-			.getInstance(DefaultTableIOPlugin.class);
+		final TableIOPlugin tableIO = //
+			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 		try {
 			Table table;
 			String expected;
-			TableIOOptions options = new TableIOOptions()
-					.readColumnHeaders(false)
-					.writeColumnHeaders(false)
-					.readRowHeaders(true)
-					.writeRowHeaders(true)
-					.columnDelimiter(',')
-					.cornerText("CORNER TEXT")
-					.rowDelimiter("\n")
-					.quote('\'')
-					.parser(Double::valueOf)
-					.formatter(val -> String.format("%.3f", val));
-			table = openTable(makeTableSource(singleRow, ",", "\n"), tableIO, options);
+			final TableIOOptions options = new TableIOOptions()//
+				.readColumnHeaders(false)//
+				.writeColumnHeaders(false)//
+				.readRowHeaders(true)//
+				.writeRowHeaders(true)//
+				.columnDelimiter(',')//
+				.cornerText("CORNER TEXT")//
+				.rowDelimiter("\n")//
+				.quote('\'')//
+				.parser(Double::valueOf)//
+				.formatter(val -> String.format("%.3f", val));
+			table = openTable(makeTableSource(singleRow, ",", "\n"), tableIO,
+				options);
 			assertTableEquals(emptyHeader, singleRowHeader, content, table);
 			expected = "Row Header,3.142\n";
 			assertEquals(expected, saveTable(table, tableIO, options));
 
 			options.readRowHeaders(false).writeRowHeaders(false);
-			table = openTable(makeTableSource(singleCell, ",", "\n"), tableIO, options);
+			table = openTable(makeTableSource(singleCell, ",", "\n"), tableIO,
+				options);
 			assertTableEquals(emptyHeader, emptyHeader, content, table);
 			expected = "3.142\n";
 			assertEquals(expected, saveTable(table, tableIO, options));
 
 			options.readColumnHeaders(true).writeColumnHeaders(true);
-			table = openTable(makeTableSource(singleCol, ",", "\n"), tableIO, options);
+			table = openTable(makeTableSource(singleCol, ",", "\n"), tableIO,
+				options);
 			assertTableEquals(singleColHeader, emptyHeader, content, table);
 			expected = "Col Header\n3.142\n";
 			assertEquals(expected, saveTable(table, tableIO, options));
 
 			options.readRowHeaders(true);
-			table = openTable(makeTableSource(onlyColHeader, ",", "\n"), tableIO, options);
+			table = openTable(makeTableSource(onlyColHeader, ",", "\n"), tableIO,
+				options);
 			assertTableEquals(singleColHeader, empty, emptyContent, table);
 			expected = "Col Header\n";
 			assertEquals(expected, saveTable(table, tableIO, options));
 
 			options.writeColumnHeaders(false).writeRowHeaders(true);
-			table = openTable(makeTableSource(onlyRowHeader, ",", "\n"), tableIO, options);
+			table = openTable(makeTableSource(onlyRowHeader, ",", "\n"), tableIO,
+				options);
 			assertTableEquals(empty, singleRowHeader, emptyContent, table);
 			expected = "Row Header\n";
 			assertEquals(expected, saveTable(table, tableIO, options));
@@ -243,25 +245,29 @@ public class DefaultTableIOPluginTest {
 
 	@Test(expected = IOException.class)
 	public void testOpenNonExist() throws IOException {
-		final IOPlugin<Table> tableIO = ctx.service(IOService.class)
-			.getInstance(DefaultTableIOPlugin.class);
+		final IOPlugin<Table> tableIO = //
+			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 		tableIO.open("fake.csv");
 	}
 
 	@Test
 	public void testGuessParser() {
-		assertEquals("test", DefaultTableIOPlugin.guessParser("test").apply("test"));
-		assertEquals(false, DefaultTableIOPlugin.guessParser("false").apply("false"));
-		assertEquals(123.0, DefaultTableIOPlugin.guessParser("123.0").apply("123.0"));
-		assertEquals(-123.0, DefaultTableIOPlugin.guessParser("-123.0").apply("-123.0"));
-		assertEquals(3.0, DefaultTableIOPlugin.guessParser("3").apply("3"));
-		assertEquals(36564573745634564d, DefaultTableIOPlugin.guessParser("36564573745634564").apply("36564573745634564"));
-		assertEquals(1234567890.0987654321, DefaultTableIOPlugin.guessParser("1.2345678900987654E9").apply("1.2345678900987654E9"));
-		assertEquals(Double.NaN, DefaultTableIOPlugin.guessParser("NaN").apply("NaN"));
-		assertEquals(Double.NaN, DefaultTableIOPlugin.guessParser("Nan").apply("Nan"));
-		assertEquals(Double.NEGATIVE_INFINITY, DefaultTableIOPlugin.guessParser("-Infinity").apply("-Infinity"));
-		assertEquals(Double.POSITIVE_INFINITY, DefaultTableIOPlugin.guessParser("infinity").apply("infinity"));
-		assertEquals(0.0, DefaultTableIOPlugin.guessParser("0.0").apply("0.0"));
+		assertEquals("test", guessParser("test").apply("test"));
+		assertEquals(false, guessParser("false").apply("false"));
+		assertEquals(123.0, guessParser("123.0").apply("123.0"));
+		assertEquals(-123.0, guessParser("-123.0").apply("-123.0"));
+		assertEquals(3.0, guessParser("3").apply("3"));
+		assertEquals(36564573745634564d, //
+			guessParser("36564573745634564").apply("36564573745634564"));
+		assertEquals(1234567890.0987654321, //
+			guessParser("1.2345678900987654E9").apply("1.2345678900987654E9"));
+		assertEquals(Double.NaN, guessParser("NaN").apply("NaN"));
+		assertEquals(Double.NaN, guessParser("Nan").apply("Nan"));
+		assertEquals(Double.NEGATIVE_INFINITY, //
+			guessParser("-Infinity").apply("-Infinity"));
+		assertEquals(Double.POSITIVE_INFINITY, //
+			guessParser("infinity").apply("infinity"));
+		assertEquals(0.0, guessParser("0.0").apply("0.0"));
 	}
 
 	// -- helper methods --
@@ -270,8 +276,7 @@ public class DefaultTableIOPluginTest {
 	 * Checks if a table has the expected column/row headers and content.
 	 */
 	private void assertTableEquals(final String[] colHeaders,
-		final String[] rowHeaders, final Object[][] content,
-		final Table table)
+		final String[] rowHeaders, final Object[][] content, final Table table)
 	{
 		assertEquals(colHeaders.length, table.getColumnCount());
 		assertEquals(rowHeaders.length, table.getRowCount());
@@ -286,29 +291,34 @@ public class DefaultTableIOPluginTest {
 		}
 	}
 
-	private Table openTable(final String tableSource,
-	                        final TableIOPlugin tableIO, TableIOOptions options) throws IOException
+	private Table openTable(final String tableSource, final TableIOPlugin tableIO,
+		final TableIOOptions options) throws IOException
 	{
-		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
+		final DataHandleService dataHandleService = //
+			ctx.service(DataHandleService.class);
 		Table result;
-		File tempFile = File.createTempFile("openTest", ".txt");
+		final File tempFile = File.createTempFile("openTest", ".txt");
 		tempFiles.add(tempFile);
-		try (DataHandle<Location> destHandle = dataHandleService.create(new FileLocation(tempFile))) {
+		try (final DataHandle<Location> destHandle = //
+			dataHandleService.create(new FileLocation(tempFile)))
+		{
 			destHandle.write(tableSource.getBytes());
 			result = tableIO.open(destHandle.get(), options);
 		}
 		return result;
 	}
 
-	private String saveTable(final Table table,
-	                         final TableIOPlugin tableIO,
-	                         final TableIOOptions options) throws IOException
+	private String saveTable(final Table table, final TableIOPlugin tableIO,
+		final TableIOOptions options) throws IOException
 	{
-		final DataHandleService dataHandleService = ctx.service(DataHandleService.class);
+		final DataHandleService dataHandleService = //
+			ctx.service(DataHandleService.class);
 		String result;
-		File tempFile = File.createTempFile("saveTest", ".txt");
+		final File tempFile = File.createTempFile("saveTest", ".txt");
 		tempFiles.add(tempFile);
-		try (DataHandle<Location> sourceHandle = dataHandleService.create(new FileLocation(tempFile))) {
+		try (final DataHandle<Location> sourceHandle = //
+			dataHandleService.create(new FileLocation(tempFile)))
+		{
 			tableIO.save(table, sourceHandle.get(), options);
 			result = sourceHandle.readString(Integer.MAX_VALUE);
 		}

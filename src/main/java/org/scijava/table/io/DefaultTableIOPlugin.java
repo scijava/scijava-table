@@ -54,22 +54,24 @@ import org.scijava.table.Table;
 import org.scijava.util.FileUtils;
 
 /**
- * Plugin for reading/writing {@link GenericTable}s.
- * 
+ * Plugin for reading/writing {@link Table}s.
+ *
  * @author Leon Yang
  */
 @SuppressWarnings("rawtypes")
 @Plugin(type = TableIOPlugin.class, priority = Priority.LOW)
-public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements TableIOPlugin {
+public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
+	TableIOPlugin
+{
 
 	@Parameter
 	private DataHandleService dataHandleService;
 
 	// FIXME: The "txt" extension is extremely general and will conflict with
 	// other plugins. Consider another way to check supportsOpen/Close.
-	private static final Set<String> SUPPORTED_EXTENSIONS = Collections
-		.unmodifiableSet(new HashSet<>(Arrays.asList("csv", "txt", "prn", "dif",
-			"rtf")));
+	private static final Set<String> SUPPORTED_EXTENSIONS = //
+		Collections.unmodifiableSet(new HashSet<>(//
+			Arrays.asList("csv", "txt", "prn", "dif", "rtf")));
 
 	@Override
 	public boolean supportsOpen(final Location source) {
@@ -84,8 +86,9 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 	}
 
 	@Override
-	public boolean supportsSave(Object data, String destination) {
-		return supports(destination) && Table.class.isAssignableFrom(data.getClass());
+	public boolean supportsSave(final Object data, final String destination) {
+		return supports(destination) && //
+			Table.class.isAssignableFrom(data.getClass());
 	}
 
 	@Override
@@ -101,7 +104,9 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 	/**
 	 * Process a given line into a list of tokens.
 	 */
-	private ArrayList<String> processRow(final String line, char separator, char quote) throws IOException {
+	private ArrayList<String> processRow(final String line, final char separator,
+		final char quote) throws IOException
+	{
 		final ArrayList<String> row = new ArrayList<>();
 		final StringBuilder sb = new StringBuilder();
 		int idx = 0;
@@ -154,11 +159,15 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 	}
 
 	@Override
-	public GenericTable open(final Location source, TableIOOptions options) throws IOException {
+	public GenericTable open(final Location source, final TableIOOptions options)
+		throws IOException
+	{
 		return open(source, options.values);
 	}
 
-	private GenericTable open(final Location source, TableIOOptions.Values options) throws IOException {
+	private GenericTable open(final Location source,
+		final TableIOOptions.Values options) throws IOException
+	{
 
 		final GenericTable table = new DefaultGenericTable();
 
@@ -168,7 +177,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 			if (!handle.exists()) {
 				throw new IOException("Cannot open source");
 			}
-			long length = handle.length();
+			final long length = handle.length();
 
 			final byte[] buffer = new byte[(int) length];
 			handle.read(buffer);
@@ -177,14 +186,14 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 
 			final char separator = options.columnDelimiter();
 			final char quote = options.quote();
-			boolean readRowHeaders = options.readRowHeaders();
-			boolean readColHeaders = options.readColumnHeaders();
+			final boolean readRowHeaders = options.readRowHeaders();
+			final boolean readColHeaders = options.readColumnHeaders();
 
 			// split by any line delimiter
 			final String[] lines = text.split("\\R");
 			if (lines.length == 0) return table;
 			// process first line to get number of cols
-			Map<Integer, Function<String, ?>> columnParsers = new HashMap<>();
+			final Map<Integer, Function<String, ?>> columnParsers = new HashMap<>();
 			{
 				final ArrayList<String> tokens = processRow(lines[0], separator, quote);
 				if (readColHeaders) {
@@ -207,7 +216,8 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 						table.appendRow();
 					}
 					for (int i = 0; i < cols.size(); i++) {
-						Function<String, ?> parser = getParser(cols.get(i), i, options);
+						final Function<String, ?> parser = getParser(cols.get(i), i,
+							options);
 						columnParsers.put(i, parser);
 						table.set(i, 0, parser.apply(cols.get(i)));
 					}
@@ -230,7 +240,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 						" is not the same length as the first line.");
 				}
 				for (int i = 0; i < cols.size(); i++) {
-					if(lineNum == 1 && readColHeaders) {
+					if (lineNum == 1 && readColHeaders) {
 						columnParsers.put(i, getParser(cols.get(i), i, options));
 					}
 					table.set(i, lineNum - 1, columnParsers.get(i).apply(cols.get(i)));
@@ -240,36 +250,39 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 		return table;
 	}
 
-	private static Function<String, ?> getParser(String content, int column, TableIOOptions.Values options) {
-		ColumnTableIOOptions.Values colOptions = options.column(column);
-		if(colOptions != null) return colOptions.parser();
-		if(options.guessParser()) return guessParser(content);
+	private static Function<String, ?> getParser(final String content,
+		final int column, final TableIOOptions.Values options)
+	{
+		final ColumnTableIOOptions.Values colOptions = options.column(column);
+		if (colOptions != null) return colOptions.parser();
+		if (options.guessParser()) return guessParser(content);
 		return options.parser();
 	}
 
-	static Function<String, ?> guessParser(String content) {
+	static Function<String, ?> guessParser(final String content) {
 		try {
-			Function<String, ?> function = s -> Double.valueOf(s
-					.replace("infinity", "Infinity")
-					.replace("Nan", "NaN")
-			);
+			final Function<String, ?> function = s -> Double.valueOf(s.replace(
+				"infinity", "Infinity").replace("Nan", "NaN"));
 			function.apply(content);
 			return function;
-		} catch(NumberFormatException ignored) {}
-		if(content.equalsIgnoreCase("true")||content.equalsIgnoreCase("false")) {
+		}
+		catch (final NumberFormatException ignored) {}
+		if (content.equalsIgnoreCase("true") || content.equalsIgnoreCase("false")) {
 			return Boolean::valueOf;
 		}
 		return String::valueOf;
 	}
 
 	@Override
-	public void save(final Table table, final Location destination, final TableIOOptions options)
-		throws IOException {
+	public void save(final Table table, final Location destination,
+		final TableIOOptions options) throws IOException
+	{
 		save(table, destination, options.values);
 	}
 
-	private void save(final Table table, final Location destination, final TableIOOptions.Values options)
-			throws IOException {
+	private void save(final Table table, final Location destination,
+		final TableIOOptions.Values options) throws IOException
+	{
 
 		try (final DataHandle<Location> handle = //
 			dataHandleService.create(destination))
@@ -280,58 +293,63 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 			final String eol = options.rowDelimiter();
 			final char quote = options.quote();
 
-				final StringBuilder sb = new StringBuilder();
-				// write column headers
-				if (writeCH) {
-					if (writeRH) {
-						sb.append(tryQuote(options.cornerText(), separator, quote));
-						if (table.getColumnCount() > 0) {
-							sb.append(separator);
-							sb.append(tryQuote(table.getColumnHeader(0), separator, quote));
-						}
-					}
-					// avoid adding extra separator when there is 0 column
-					else if (table.getColumnCount() > 0) {
+			final StringBuilder sb = new StringBuilder();
+			// write column headers
+			if (writeCH) {
+				if (writeRH) {
+					sb.append(tryQuote(options.cornerText(), separator, quote));
+					if (table.getColumnCount() > 0) {
+						sb.append(separator);
 						sb.append(tryQuote(table.getColumnHeader(0), separator, quote));
 					}
-					for (int col = 1; col < table.getColumnCount(); col++) {
-						sb.append(separator);
-						sb.append(tryQuote(table.getColumnHeader(col), separator, quote));
-					}
-					sb.append(eol);
-					handle.writeBytes(sb.toString());
-					sb.setLength(0);
 				}
-				// write each row
-				for (int row = 0; row < table.getRowCount(); row++) {
-					Function<Object, String> formatter = getFormatter(options, 0);
-					if (writeRH) {
-						sb.append(tryQuote(table.getRowHeader(row), separator, quote));
-						if (table.getColumnCount() > 0) {
-							sb.append(separator);
-							sb.append(tryQuote(formatter.apply(table.get(0, row)), separator, quote));
-						}
-					}
-					// avoid adding extra separator when there is 0 column
-					else if (table.getColumnCount() > 0) {
-						sb.append(tryQuote(formatter.apply(table.get(0, row)), separator, quote));
-					}
-					for (int col = 1; col < table.getColumnCount(); col++) {
-						formatter = getFormatter(options, col);
-						sb.append(separator);
-						sb.append(tryQuote(formatter.apply(table.get(col, row)), separator, quote));
-					}
-					sb.append(eol);
-					handle.writeBytes(sb.toString());
-					sb.setLength(0);
+				// avoid adding extra separator when there is 0 column
+				else if (table.getColumnCount() > 0) {
+					sb.append(tryQuote(table.getColumnHeader(0), separator, quote));
 				}
+				for (int col = 1; col < table.getColumnCount(); col++) {
+					sb.append(separator);
+					sb.append(tryQuote(table.getColumnHeader(col), separator, quote));
+				}
+				sb.append(eol);
+				handle.writeBytes(sb.toString());
+				sb.setLength(0);
+			}
+			// write each row
+			for (int row = 0; row < table.getRowCount(); row++) {
+				Function<Object, String> formatter = getFormatter(options, 0);
+				if (writeRH) {
+					sb.append(tryQuote(table.getRowHeader(row), separator, quote));
+					if (table.getColumnCount() > 0) {
+						sb.append(separator);
+						sb.append(tryQuote(formatter.apply(table.get(0, row)), separator,
+							quote));
+					}
+				}
+				// avoid adding extra separator when there is 0 column
+				else if (table.getColumnCount() > 0) {
+					sb.append(tryQuote(formatter.apply(table.get(0, row)), separator,
+						quote));
+				}
+				for (int col = 1; col < table.getColumnCount(); col++) {
+					formatter = getFormatter(options, col);
+					sb.append(separator);
+					sb.append(tryQuote(formatter.apply(table.get(col, row)), separator,
+						quote));
+				}
+				sb.append(eol);
+				handle.writeBytes(sb.toString());
+				sb.setLength(0);
+			}
 		}
 
 	}
 
-	private Function<Object, String> getFormatter(TableIOOptions.Values options, int i) {
-		ColumnTableIOOptions.Values columnOptions = options.column(i);
-		if(columnOptions != null) return columnOptions.formatter();
+	private Function<Object, String> getFormatter(
+		final TableIOOptions.Values options, final int i)
+	{
+		final ColumnTableIOOptions.Values columnOptions = options.column(i);
+		if (columnOptions != null) return columnOptions.formatter();
 		return options.formatter();
 	}
 
@@ -340,11 +358,13 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements Tab
 	 * <li>it is null or empty</li>
 	 * <li>it has quotes inside</li>
 	 * <li>it has separators or EOL inside</li>
-	 * 
+	 *
 	 * @param str string to quote
 	 * @return string, possibly quoted
 	 */
-	private String tryQuote(final String str, char separator, char quote) {
+	private String tryQuote(final String str, final char separator,
+		final char quote)
+	{
 		if (str == null || str.length() == 0) return "" + quote + quote;
 		if (str.indexOf(quote) != -1) return quote + str.replace("" + quote, "" +
 			quote + quote) + quote;
