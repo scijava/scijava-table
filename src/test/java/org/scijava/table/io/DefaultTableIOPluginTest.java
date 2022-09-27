@@ -1,9 +1,9 @@
 /*
  * #%L
- * I/O plugins for SciJava table objects.
+ * Table structures for SciJava.
  * %%
- * Copyright (C) 2017 - 2020 Board of Regents of the University of
- * Wisconsin-Madison and University of Konstanz.
+ * Copyright (C) 2012 - 2022 Board of Regents of the University of
+ * Wisconsin-Madison, and Friedrich Miescher Institute for Biomedical Research.
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
  * #L%
  */
 
-package org.scijava.table;
+package org.scijava.table.io;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -50,6 +50,10 @@ import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
 import org.scijava.io.location.FileLocation;
 import org.scijava.io.location.Location;
+import org.scijava.table.DefaultGenericTable;
+import org.scijava.table.GenericTable;
+import org.scijava.table.Table;
+import org.scijava.table.io.DefaultTableIOPlugin;
 import org.scijava.table.io.TableIOOptions;
 import org.scijava.table.io.TableIOPlugin;
 
