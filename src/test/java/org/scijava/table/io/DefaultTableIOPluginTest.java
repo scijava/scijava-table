@@ -79,6 +79,36 @@ public class DefaultTableIOPluginTest {
 	}
 
 	/**
+	 * Tests the following methods:
+	 * <ul>
+	 * <li>{@link DefaultTableIOPlugin#supportsOpen(String)}</li>
+	 * <li>{@link DefaultTableIOPlugin#supportsSave(String)}</li>
+	 * <li>{@link DefaultTableIOPlugin#supportsOpen(Location)}</li>
+	 * <li>{@link DefaultTableIOPlugin#supportsSave(Location)}</li>
+	 * </ul>
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+	public void testSupports() throws IOException {
+		// Non-existent .csv file: supports save, but not open.
+		final File nonExistentCSV = new File("thisFileDoesNotExist.csv");
+		assertSupports(nonExistentCSV, false, /*true*/false);
+
+		// Existing .txt file: supports both open and save.
+		final File existingTXT = createTempFile("existing");
+		assertSupports(existingTXT, true, true);
+
+		// Existing directory: not table compatible.
+		final File existingNonTable = new File(".");
+		assertSupports(existingNonTable, false, false);
+
+		// Non-existent TIFF file: not table compatible.
+		final File nonExistentTIFF = new File("thisFileDoesNotExist.tif");
+		assertSupports(nonExistentTIFF, false, false);
+	}
+
+	/**
 	 * Tests if the parser works on a common comma-delimited table.
 	 */
 	@Test
@@ -331,5 +361,27 @@ public class DefaultTableIOPluginTest {
 			File.createTempFile(getClass().getName() + "." + prefix, ".txt");
 		tempFile.deleteOnExit();
 		return tempFile;
+	}
+
+	private void assertSupports(final File file, final boolean supportsOpen,
+		final boolean supportsSave)
+	{
+		final boolean exists = file.exists();
+		final String path = file.getPath();
+		final String absPath = file.getAbsolutePath();
+		final FileLocation loc = new FileLocation(file);
+		assertEquals(exists, file.exists());
+		assertEquals(supportsOpen, tableIO.supportsOpen(path));
+		assertEquals(exists, file.exists());
+		assertEquals(supportsOpen, tableIO.supportsOpen(absPath));
+		assertEquals(exists, file.exists());
+		assertEquals(supportsOpen, tableIO.supportsOpen(loc));
+		assertEquals(exists, file.exists());
+		assertEquals(supportsSave, tableIO.supportsSave(path));
+		assertEquals(exists, file.exists());
+		assertEquals(supportsSave, tableIO.supportsSave(absPath));
+		assertEquals(exists, file.exists());
+		assertEquals(supportsSave, tableIO.supportsSave(loc));
+		assertEquals(exists, file.exists());
 	}
 }
