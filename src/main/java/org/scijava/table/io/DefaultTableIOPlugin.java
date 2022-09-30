@@ -78,28 +78,17 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 	@Override
 	public boolean supportsOpen(final Location source) {
 		if (!(source instanceof FileLocation)) return false;
-		return supportsOpen(((FileLocation) source).getFile());
-	}
-
-	@Override
-	public boolean supportsOpen(final String source) {
-		return supportsOpen(new File(source));
-	}
-
-	@Override
-	public boolean supportsSave(final Object data, final String destination) {
-		return supports(destination) && //
-			Table.class.isAssignableFrom(data.getClass());
+		final File file = ((FileLocation) source).getFile();
+		// NB: For opening, the file must exist or it's not readable.
+		return file.exists() && supportsFile(file);
 	}
 
 	@Override
 	public boolean supportsSave(final Location source) {
-		return supportsOpen(source);
-	}
-
-	@Override
-	public boolean supportsSave(final String source) {
-		return supportsOpen(source);
+		if (!(source instanceof FileLocation)) return false;
+		final File file = ((FileLocation) source).getFile();
+		// NB: For saving, it's OK if the file does not exist yet.
+		return supportsFile(file);
 	}
 
 	/**
@@ -281,8 +270,8 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		save(table, destination, options.values);
 	}
 
-	private boolean supportsOpen(final File file) {
-		if (!file.exists() || file.isDirectory()) return false;
+	private boolean supportsFile(final File file) {
+		if (file.isDirectory()) return false;
 		final String ext = FileUtils.getExtension(file).toLowerCase();
 		return SUPPORTED_EXTENSIONS.contains(ext);
 	}

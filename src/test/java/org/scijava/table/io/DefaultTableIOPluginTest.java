@@ -93,7 +93,7 @@ public class DefaultTableIOPluginTest {
 	public void testSupports() throws IOException {
 		// Non-existent .csv file: supports save, but not open.
 		final File nonExistentCSV = new File("thisFileDoesNotExist.csv");
-		assertSupports(nonExistentCSV, false, /*true*/false);
+		assertSupports(nonExistentCSV, false, true);
 
 		// Existing .txt file: supports both open and save.
 		final File existingTXT = createTempFile("existing");
