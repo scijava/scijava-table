@@ -373,8 +373,9 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		final char quote)
 	{
 		if (str == null || str.length() == 0) return "" + quote + quote;
-		if (str.indexOf(quote) != -1) return quote + str.replace("" + quote, "" +
-			quote + quote) + quote;
+		if (str.indexOf(quote) != -1) {
+			return quote + str.replace("" + quote, "" + quote + quote) + quote;
+		}
 		if (str.indexOf(separator) != -1) return quote + str + quote;
 		return str;
 	}
