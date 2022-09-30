@@ -122,10 +122,12 @@ public class TableIOServiceTest {
 		}
 
 		/**
-		 * This method creates a fake table for the purpose of testing the propagation of options.
-		 * It creates a row and a column with header names based on the {@param options}.
+		 * This method creates a fake table for the purpose of testing the
+		 * propagation of options. It creates a row and a column with header names
+		 * based on the {@code options}.
 		 */
 		@Override
+		@SuppressWarnings("unchecked")
 		public Table open(Location loc, TableIOOptions options) {
 			DefaultGenericTable table = new DefaultGenericTable();
 			if(options.values.readColumnHeaders()) {

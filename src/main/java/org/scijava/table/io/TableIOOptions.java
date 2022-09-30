@@ -282,9 +282,10 @@ public class TableIOOptions extends AbstractOptions<TableIOOptions> {
 		 * @return the values of this column's options
 		 */
 		public ColumnTableIOOptions.Values column(int column) {
-			ColumnTableIOOptions columnOptions = getValueOrDefault(columnOptionsKey, new HashMap<Integer, ColumnTableIOOptions>()).get(column);
-			if(columnOptions == null) return null;
-			return columnOptions.values;
+			ColumnTableIOOptions colOpts = getValueOrDefault(columnOptionsKey,
+				new HashMap<Integer, ColumnTableIOOptions>()).get(column);
+			if (colOpts == null) return null;
+			return colOpts.values;
 		}
 	}
 }

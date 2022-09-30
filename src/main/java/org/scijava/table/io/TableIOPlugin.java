@@ -30,17 +30,18 @@
 
 package org.scijava.table.io;
 
+import java.io.IOException;
+
 import org.scijava.io.IOPlugin;
 import org.scijava.io.location.Location;
 import org.scijava.table.Table;
-
-import java.io.IOException;
 
 /**
  * Abstract plugin class for saving and loading tables
  *
  * @author Deborah Schmidt
  */
+@SuppressWarnings("rawtypes")
 public interface TableIOPlugin extends IOPlugin<Table> {
 
 	@Override
@@ -48,8 +49,16 @@ public interface TableIOPlugin extends IOPlugin<Table> {
 		return open(source, new TableIOOptions());
 	}
 
-	/** Opens data from the given source. */
-	default Table<?, ?> open(final Location source, final TableIOOptions options) throws IOException {
+	/**
+	 * Opens data from the given source.
+	 *
+	 * @param source The data source to open as a table.
+	 * @param options The options to use when opening the data.
+	 * @throws IOException If something goes wrong opening the data source.
+	 */
+	default Table<?, ?> open(final Location source, final TableIOOptions options)
+		throws IOException
+	{
 		throw new UnsupportedOperationException();
 	}
 
@@ -58,8 +67,17 @@ public interface TableIOPlugin extends IOPlugin<Table> {
 		save(data, destination, new TableIOOptions());
 	}
 
-	/** Saves the given data to the specified destination. */
-	default void save(final Table<?, ?> data, final Location destination, final TableIOOptions options) throws IOException {
+	/**
+	 * Saves the given data to the specified destination.
+	 *
+	 * @param data The table to save.
+	 * @param destination The destination where the table should be saved.
+	 * @param options The options to use when saving the data.
+	 * @throws IOException If something goes wrong opening the data source.
+	 */
+	default void save(final Table<?, ?> data, final Location destination,
+		final TableIOOptions options) throws IOException
+	{
 		throw new UnsupportedOperationException();
 	}
 

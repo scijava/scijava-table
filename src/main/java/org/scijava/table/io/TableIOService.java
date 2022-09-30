@@ -32,10 +32,8 @@ package org.scijava.table.io;
 
 import java.io.IOException;
 
-import org.scijava.io.IOService;
 import org.scijava.io.TypedIOService;
 import org.scijava.io.location.Location;
-import org.scijava.service.SciJavaService;
 import org.scijava.table.Table;
 
 public interface TableIOService extends TypedIOService<Table<?, ?>> {

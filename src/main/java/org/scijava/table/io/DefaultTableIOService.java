@@ -35,9 +35,7 @@ import java.net.URISyntaxException;
 
 import org.scijava.io.AbstractTypedIOService;
 import org.scijava.io.IOPlugin;
-import org.scijava.io.IOService;
 import org.scijava.io.location.Location;
-import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.service.Service;
 import org.scijava.table.Table;
@@ -84,7 +82,8 @@ public class DefaultTableIOService extends AbstractTypedIOService<Table<?, ?>> i
 
 	@Override
 	public void save(Table<?, ?> table, Location destination, TableIOOptions options) throws IOException {
-		IOPlugin<Table> saver = ioService().getSaver(table, destination);
+		@SuppressWarnings("rawtypes")
+		final IOPlugin<Table> saver = ioService().getSaver(table, destination);
 		if (saver != null && TableIOPlugin.class.isAssignableFrom(saver.getClass())) {
 			((TableIOPlugin)saver).save(table, destination, options);
 		}
