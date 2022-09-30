@@ -31,21 +31,18 @@
 package org.scijava.table.io;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.scijava.table.io.DefaultTableIOPlugin.guessParser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.scijava.Context;
-import org.scijava.io.IOPlugin;
 import org.scijava.io.IOService;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
@@ -59,22 +56,26 @@ import org.scijava.table.Table;
  * Tests for {@link DefaultTableIOPlugin}.
  *
  * @author Leon Yang
+ * @author Curtis Rueden
  */
 @SuppressWarnings("rawtypes")
 public class DefaultTableIOPluginTest {
 
-	private static final Context ctx = new Context();
-
-	private final List<File> tempFiles = new ArrayList<>();
+	private Context ctx;
+	private DefaultTableIOPlugin tableIO;
 
 	@Before
+	public void setUp() {
+		ctx = new Context(IOService.class, DataHandleService.class);
+		tableIO = ctx.service(IOService.class)//
+			.getInstance(DefaultTableIOPlugin.class);
+	}
+
 	@After
-	public void removeTempFiles() {
-		final Location source = new FileLocation("fake.csv");
-		new File(source.getURI()).delete();
-		for (final File f : tempFiles) {
-			assertTrue(f.delete());
-		}
+	public void tearDown() {
+		ctx.dispose();
+		ctx = null;
+		tableIO = null;
 	}
 
 	/**
@@ -102,12 +103,9 @@ public class DefaultTableIOPluginTest {
 
 		assertTableEquals(colHeaders, rowHeaders, content, table);
 
-		final TableIOPlugin tableIO = //
-			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
+		assertEquals(expected, saveTable(table, TableIOOptions.options()));
 
-		assertEquals(expected, saveTable(table, tableIO, TableIOOptions.options()));
-
-		final Table table2 = openTable(expected, tableIO, TableIOOptions.options());
+		final Table table2 = openTable(expected, TableIOOptions.options());
 
 		assertTableEquals(colHeaders, rowHeaders, content, table2);
 	}
@@ -136,8 +134,6 @@ public class DefaultTableIOPluginTest {
 			"'should\tnot,break',unnecessary_quotes,should,break\r\n" +
 			"'some,empty,cells','','',''\r\n";
 
-		final TableIOPlugin tableIO = //
-			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 		try {
 			final TableIOOptions options = TableIOOptions.options()//
 				.readColumnHeaders(true)//
@@ -148,15 +144,14 @@ public class DefaultTableIOPluginTest {
 				.rowDelimiter("\r\n")//
 				.quote('\'')//
 				.cornerText("CORNER_TEXT");
-			final Table table = openTable(tableSource, tableIO, options);
+			final Table table = openTable(tableSource, options);
 			assertTableEquals(colHeaders, rowHeaders, content, table);
 
 			options.columnDelimiter(',');
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 		}
 		catch (final Exception exc) {
-			exc.printStackTrace();
-			fail(exc.getMessage());
+			throw new AssertionError(exc.getMessage(), exc);
 		}
 	}
 
@@ -180,8 +175,6 @@ public class DefaultTableIOPluginTest {
 		final Double[][] content = { { 3.1415926 } };
 		final Double[][] emptyContent = { {} };
 
-		final TableIOPlugin tableIO = //
-			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
 		try {
 			Table table;
 			String expected;
@@ -196,45 +189,45 @@ public class DefaultTableIOPluginTest {
 				.quote('\'')//
 				.parser(Double::valueOf)//
 				.formatter(val -> String.format("%.3f", val));
-			table = openTable(makeTableSource(singleRow, ",", "\n"), tableIO,
+			table = openTable(makeTableSource(singleRow, ",", "\n"),
 				options);
 			assertTableEquals(emptyHeader, singleRowHeader, content, table);
 			expected = "Row Header,3.142\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 
 			options.readRowHeaders(false).writeRowHeaders(false);
-			table = openTable(makeTableSource(singleCell, ",", "\n"), tableIO,
+			table = openTable(makeTableSource(singleCell, ",", "\n"),
 				options);
 			assertTableEquals(emptyHeader, emptyHeader, content, table);
 			expected = "3.142\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 
 			options.readColumnHeaders(true).writeColumnHeaders(true);
-			table = openTable(makeTableSource(singleCol, ",", "\n"), tableIO,
+			table = openTable(makeTableSource(singleCol, ",", "\n"),
 				options);
 			assertTableEquals(singleColHeader, emptyHeader, content, table);
 			expected = "Col Header\n3.142\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 
 			options.readRowHeaders(true);
-			table = openTable(makeTableSource(onlyColHeader, ",", "\n"), tableIO,
+			table = openTable(makeTableSource(onlyColHeader, ",", "\n"),
 				options);
 			assertTableEquals(singleColHeader, empty, emptyContent, table);
 			expected = "Col Header\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 
 			options.writeColumnHeaders(false).writeRowHeaders(true);
-			table = openTable(makeTableSource(onlyRowHeader, ",", "\n"), tableIO,
+			table = openTable(makeTableSource(onlyRowHeader, ",", "\n"),
 				options);
 			assertTableEquals(empty, singleRowHeader, emptyContent, table);
 			expected = "Row Header\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 
 			options.writeColumnHeaders(true);
-			table = openTable(makeTableSource(full, ",", "\n"), tableIO, options);
+			table = openTable(makeTableSource(full, ",", "\n"), options);
 			assertTableEquals(singleColHeader, singleRowHeader, content, table);
 			expected = "CORNER TEXT,Col Header\nRow Header,3.142\n";
-			assertEquals(expected, saveTable(table, tableIO, options));
+			assertEquals(expected, saveTable(table, options));
 		}
 		catch (final Exception exc) {
 			exc.printStackTrace();
@@ -245,9 +238,9 @@ public class DefaultTableIOPluginTest {
 
 	@Test(expected = IOException.class)
 	public void testOpenNonExist() throws IOException {
-		final IOPlugin<Table> tableIO = //
-			ctx.service(IOService.class).getInstance(DefaultTableIOPlugin.class);
-		tableIO.open("fake.csv");
+		final File nonExistentCSV = new File("thisFileDoesNotExist.csv");
+		assertFalse(nonExistentCSV.exists());
+		tableIO.open(nonExistentCSV.getPath());
 	}
 
 	@Test
@@ -291,14 +284,13 @@ public class DefaultTableIOPluginTest {
 		}
 	}
 
-	private Table openTable(final String tableSource, final TableIOPlugin tableIO,
+	private Table openTable(final String tableSource,
 		final TableIOOptions options) throws IOException
 	{
 		final DataHandleService dataHandleService = //
 			ctx.service(DataHandleService.class);
 		Table result;
-		final File tempFile = File.createTempFile("openTest", ".txt");
-		tempFiles.add(tempFile);
+		final File tempFile = createTempFile("openTable");
 		try (final DataHandle<Location> destHandle = //
 			dataHandleService.create(new FileLocation(tempFile)))
 		{
@@ -308,14 +300,13 @@ public class DefaultTableIOPluginTest {
 		return result;
 	}
 
-	private String saveTable(final Table table, final TableIOPlugin tableIO,
-		final TableIOOptions options) throws IOException
+	private String saveTable(final Table table, final TableIOOptions options)
+		throws IOException
 	{
 		final DataHandleService dataHandleService = //
 			ctx.service(DataHandleService.class);
 		String result;
-		final File tempFile = File.createTempFile("saveTest", ".txt");
-		tempFiles.add(tempFile);
+		final File tempFile = createTempFile("saveTable");
 		try (final DataHandle<Location> sourceHandle = //
 			dataHandleService.create(new FileLocation(tempFile)))
 		{
@@ -333,5 +324,12 @@ public class DefaultTableIOPluginTest {
 			table.append(String.join(separator, row)).append(eol);
 		}
 		return table.toString();
+	}
+
+	private File createTempFile(final String prefix) throws IOException {
+		final File tempFile = //
+			File.createTempFile(getClass().getName() + "." + prefix, ".txt");
+		tempFile.deleteOnExit();
+		return tempFile;
 	}
 }
