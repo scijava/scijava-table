@@ -164,7 +164,7 @@ public abstract class AbstractTable<C extends Column<? extends T>, T> extends
 
 	@Override
 	public boolean add(final C column) {
-		if (column.size() > rowCount) rowCount = column.size();
+		if (column != null && column.size() > rowCount) rowCount = column.size();
 		scaleColumns();
 		return super.add(column);
 	}
@@ -172,14 +172,14 @@ public abstract class AbstractTable<C extends Column<? extends T>, T> extends
 	@Override
 	public void add(final int col, final C column) {
 		super.add(col, column);
-		if (column.size() > rowCount) rowCount = column.size();
+		if (column != null && column.size() > rowCount) rowCount = column.size();
 		scaleColumns();
 	}
 
 	@Override
 	public boolean addAll(final Collection<? extends C> c) {
 		for (final C column : c) {
-			if (column.size() > rowCount) rowCount = column.size();
+			if (column != null && column.size() > rowCount) rowCount = column.size();
 		}
 		scaleColumns();
 		return super.addAll(c);
@@ -188,7 +188,7 @@ public abstract class AbstractTable<C extends Column<? extends T>, T> extends
 	@Override
 	public boolean addAll(final int col, final Collection<? extends C> c) {
 		for (final C column : c) {
-			if (column.size() > rowCount) rowCount = column.size();
+			if (column != null && column.size() > rowCount) rowCount = column.size();
 		}
 		scaleColumns();
 		return super.addAll(col, c);

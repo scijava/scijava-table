@@ -31,6 +31,8 @@
 package org.scijava.table;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.List;
@@ -302,6 +304,14 @@ public class DefaultFloatTableTest {
 		}
 
 		checkTableModifiedRows(table, values, 4, 5);
+	}
+
+	@Test
+	public void testNullColumns() {
+		final FloatTable table = new DefaultFloatTable(100, 10);
+		table.add(null);
+		assertNotNull(table.get(99));
+		assertNull(table.get(100));
 	}
 
 	// TODO - Add more tests.
