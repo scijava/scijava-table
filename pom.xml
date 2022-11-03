@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>scijava-table</artifactId>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>1.0.2</version>
 
 	<name>SciJava Table</name>
 	<description>Table structures for SciJava.</description>
@@ -91,7 +91,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/scijava/scijava-table</connection>
 		<developerConnection>scm:git:git@github.com:scijava/scijava-table</developerConnection>
-		<tag>HEAD</tag>
+		<tag>scijava-table-1.0.2</tag>
 		<url>https://github.com/scijava/scijava-table</url>
 	</scm>
 	<issueManagement>
