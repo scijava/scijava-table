@@ -30,7 +30,6 @@
 
 package org.scijava.table.io;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,19 +45,19 @@ import org.scijava.Priority;
 import org.scijava.io.AbstractIOPlugin;
 import org.scijava.io.handle.DataHandle;
 import org.scijava.io.handle.DataHandleService;
-import org.scijava.io.location.FileLocation;
 import org.scijava.io.location.Location;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.GenericTable;
 import org.scijava.table.Table;
-import org.scijava.util.FileUtils;
 
 /**
  * Plugin for reading/writing {@link Table}s.
  *
  * @author Leon Yang
+ * @author Curtis Rueden
  */
 @SuppressWarnings("rawtypes")
 @Plugin(type = TableIOPlugin.class, priority = Priority.LOW)
@@ -69,84 +68,16 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 	@Parameter
 	private DataHandleService dataHandleService;
 
+	@Parameter
+	private LogService log;
+
 	// FIXME: The "txt" extension is extremely general and will conflict with
 	// other plugins. Consider another way to check supportsOpen/Close.
 	private static final Set<String> SUPPORTED_EXTENSIONS = //
 		Collections.unmodifiableSet(new HashSet<>(//
 			Arrays.asList("csv", "txt", "prn", "dif", "rtf")));
 
-	@Override
-	public boolean supportsOpen(final Location source) {
-		if (!(source instanceof FileLocation)) return false;
-		final File file = ((FileLocation) source).getFile();
-		// NB: For opening, the file must exist or it's not readable.
-		return file.exists() && supportsFile(file);
-	}
-
-	@Override
-	public boolean supportsSave(final Location source) {
-		if (!(source instanceof FileLocation)) return false;
-		final File file = ((FileLocation) source).getFile();
-		// NB: For saving, it's OK if the file does not exist yet.
-		return supportsFile(file);
-	}
-
-	/**
-	 * Process a given line into a list of tokens.
-	 */
-	private ArrayList<String> processRow(final String line, final char separator,
-		final char quote) throws IOException
-	{
-		final ArrayList<String> row = new ArrayList<>();
-		final StringBuilder sb = new StringBuilder();
-		int idx = 0;
-		int start = idx;
-		while (idx < line.length()) {
-			if (line.charAt(idx) == quote) {
-				sb.append(line, start, idx);
-				boolean quoted = true;
-				idx++;
-				start = idx;
-				// find quoted string
-				while (idx < line.length()) {
-					if (line.charAt(idx) == quote) {
-						sb.append(line, start, idx);
-						if (idx + 1 < line.length() && line.charAt(idx + 1) == quote) {
-							sb.append(quote);
-							idx += 2;
-							start = idx;
-						}
-						else {
-							idx++;
-							start = idx;
-							quoted = false;
-							break;
-						}
-					}
-					else {
-						idx++;
-					}
-				}
-				if (quoted) {
-					throw new IOException(String.format(
-						"Unbalanced quote at position %d: %s", idx, line));
-				}
-			}
-			else if (line.charAt(idx) == separator) {
-				sb.append(line, start, idx);
-				row.add(sb.toString());
-				sb.setLength(0);
-				idx++;
-				start = idx;
-			}
-			else {
-				idx++;
-			}
-		}
-		sb.append(line, start, idx);
-		row.add(sb.toString());
-		return row;
-	}
+	// -- TableIOPlugin methods --
 
 	@Override
 	public GenericTable open(final Location source, final TableIOOptions options)
@@ -155,10 +86,37 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		return open(source, options.values);
 	}
 
+	@Override
+	public void save(final Table table, final Location destination,
+		final TableIOOptions options) throws IOException
+	{
+		save(table, destination, options.values);
+	}
+
+	// -- IOPlugin methods --
+
+	@Override
+	public boolean supportsOpen(final Location source) {
+		if (!supportsLocation(source)) return false;
+		try {
+			return dataHandleService.exists(source);
+		}
+		catch (IOException exc) {
+			log.debug(exc);
+			return false;
+		}
+	}
+
+	@Override
+	public boolean supportsSave(final Location source) {
+		return supportsLocation(source);
+	}
+
+	// -- Helper methods --
+
 	private GenericTable open(final Location source,
 		final TableIOOptions.Values options) throws IOException
 	{
-
 		final GenericTable table = new DefaultGenericTable();
 
 		try (final DataHandle<? extends Location> handle = //
@@ -240,46 +198,9 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		return table;
 	}
 
-	private static Function<String, ?> getParser(final String content,
-		final int column, final TableIOOptions.Values options)
-	{
-		final ColumnTableIOOptions.Values colOptions = options.column(column);
-		if (colOptions != null) return colOptions.parser();
-		if (options.guessParser()) return guessParser(content);
-		return options.parser();
-	}
-
-	static Function<String, ?> guessParser(final String content) {
-		try {
-			final Function<String, ?> function = s -> Double.valueOf(s.replace(
-				"infinity", "Infinity").replace("Nan", "NaN"));
-			function.apply(content);
-			return function;
-		}
-		catch (final NumberFormatException ignored) {}
-		if (content.equalsIgnoreCase("true") || content.equalsIgnoreCase("false")) {
-			return Boolean::valueOf;
-		}
-		return String::valueOf;
-	}
-
-	@Override
-	public void save(final Table table, final Location destination,
-		final TableIOOptions options) throws IOException
-	{
-		save(table, destination, options.values);
-	}
-
-	private boolean supportsFile(final File file) {
-		if (file.isDirectory()) return false;
-		final String ext = FileUtils.getExtension(file).toLowerCase();
-		return SUPPORTED_EXTENSIONS.contains(ext);
-	}
-
 	private void save(final Table table, final Location destination,
 		final TableIOOptions.Values options) throws IOException
 	{
-
 		try (final DataHandle<Location> handle = //
 			dataHandleService.create(destination))
 		{
@@ -338,10 +259,84 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 				sb.setLength(0);
 			}
 		}
-
 	}
 
-	private Function<Object, String> getFormatter(
+	private static boolean supportsLocation(Location location) {
+		final String name = location.getName();
+		if (name == null) return false;
+		final int dot = name.lastIndexOf('.');
+		if (dot < 0) return false;
+		String extension = name.substring(dot + 1).toLowerCase();
+		return SUPPORTED_EXTENSIONS.contains(extension);
+	}
+
+	/**
+	 * Process a given line into a list of tokens.
+	 */
+	private static ArrayList<String> processRow(final String line, final char separator,
+		final char quote) throws IOException
+	{
+		final ArrayList<String> row = new ArrayList<>();
+		final StringBuilder sb = new StringBuilder();
+		int idx = 0;
+		int start = idx;
+		while (idx < line.length()) {
+			if (line.charAt(idx) == quote) {
+				sb.append(line, start, idx);
+				boolean quoted = true;
+				idx++;
+				start = idx;
+				// find quoted string
+				while (idx < line.length()) {
+					if (line.charAt(idx) == quote) {
+						sb.append(line, start, idx);
+						if (idx + 1 < line.length() && line.charAt(idx + 1) == quote) {
+							sb.append(quote);
+							idx += 2;
+							start = idx;
+						}
+						else {
+							idx++;
+							start = idx;
+							quoted = false;
+							break;
+						}
+					}
+					else {
+						idx++;
+					}
+				}
+				if (quoted) {
+					throw new IOException(String.format(
+						"Unbalanced quote at position %d: %s", idx, line));
+				}
+			}
+			else if (line.charAt(idx) == separator) {
+				sb.append(line, start, idx);
+				row.add(sb.toString());
+				sb.setLength(0);
+				idx++;
+				start = idx;
+			}
+			else {
+				idx++;
+			}
+		}
+		sb.append(line, start, idx);
+		row.add(sb.toString());
+		return row;
+	}
+
+	private static Function<String, ?> getParser(final String content,
+		final int column, final TableIOOptions.Values options)
+	{
+		final ColumnTableIOOptions.Values colOptions = options.column(column);
+		if (colOptions != null) return colOptions.parser();
+		if (options.guessParser()) return guessParser(content);
+		return options.parser();
+	}
+
+	private static Function<Object, String> getFormatter(
 		final TableIOOptions.Values options, final int i)
 	{
 		final ColumnTableIOOptions.Values columnOptions = options.column(i);
@@ -358,7 +353,7 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 	 * @param str string to quote
 	 * @return string, possibly quoted
 	 */
-	private String tryQuote(final String str, final char separator,
+	private static String tryQuote(final String str, final char separator,
 		final char quote)
 	{
 		if (str == null || str.length() == 0) return "" + quote + quote;
@@ -367,5 +362,19 @@ public class DefaultTableIOPlugin extends AbstractIOPlugin<Table> implements
 		}
 		if (str.indexOf(separator) != -1) return quote + str + quote;
 		return str;
+	}
+
+	static Function<String, ?> guessParser(final String content) {
+		try {
+			final Function<String, ?> function = s -> Double.valueOf(s.replace(
+				"infinity", "Infinity").replace("Nan", "NaN"));
+			function.apply(content);
+			return function;
+		}
+		catch (final NumberFormatException ignored) {}
+		if (content.equalsIgnoreCase("true") || content.equalsIgnoreCase("false")) {
+			return Boolean::valueOf;
+		}
+		return String::valueOf;
 	}
 }

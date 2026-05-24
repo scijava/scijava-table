@@ -37,7 +37,7 @@ import org.scijava.io.location.Location;
 import org.scijava.table.Table;
 
 /**
- * Abstract plugin class for saving and loading tables
+ * SciJava plugin type for saving and loading tables.
  *
  * @author Deborah Schmidt
  */
