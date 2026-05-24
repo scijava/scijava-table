@@ -1,9 +1,11 @@
-#IntelliJ
-/.idea/
-*.iml
-
-.classpath
-.metadata
-.project
-.settings/
+# Maven #
 /target/
+
+# IntelliJ #
+/.idea/
+
+# Eclipse #
+/.classpath
+/.factorypath
+/.project
+/.settings/
